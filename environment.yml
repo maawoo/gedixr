@@ -1,0 +1,9 @@
+name: gedixr
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.9
+  - geopandas>=0.13
+  - h5netcdf
+  - tqdm
