@@ -55,7 +55,7 @@ def extract_data(directory, gedi_product='L2B', filter_month=(1, 12), subset_vec
     
     spatial_subset = False
     if subset_vector is not None:
-        out_dict = _vec_to_shapely_poly(vector=subset_vector)
+        out_dict = prepare_roi(vector=subset_vector)
         spatial_subset = True
     
     # TODO: Processing runs overwrite each other because the log handler persists!
@@ -146,36 +146,34 @@ def extract_data(directory, gedi_product='L2B', filter_month=(1, 12), subset_vec
         return out
 
 
-def _vec_to_shapely_poly(vector):
+def prepare_roi(vec):
     """
-    Return a shapely Polygon from a vector file.
-    TODO: Need to improve this documentation!
-
+    Prepares a vector file or list of vector files for spatial subsetting by extracting the geometry of each vector file
+    and storing it in a dictionary.
+    
     Parameters
     ----------
-    vector: str or list(str)
-        Path or list of paths to vector files in GeoJSON or Shapefile format. If a multi-feature polygon is detected,
+    vec: str or list(str)
+        Path or list of paths to vector files in a fiona supported format. If a multi-feature polygon is detected,
         the first feature will be used for subsetting.
-
+    
     Returns
     -------
     out: dict
-        Dictionary with key-value pairs {'vector_basename': {'geo': shapely.geometry.polygon.Polygon, 'gdf': None}}
+        Dictionary with key-value pairs:
+        {'<Vector Basename>': {'geo': shapely.geometry.polygon.Polygon,
+                               'gdf': None}}
     """
-    if isinstance(vector, str):
-        vector = [vector]
+    if isinstance(vec, str):
+        vec = [vec]
     
     out = {}
-    for v in vector:
-        if not any([v.endswith(suffix) for suffix in ['.shp', '.geojson']]):
-            raise RuntimeError(f'Unable to read {v}. \n'
-                               f'Spatial subsetting only supported with GeoJSON (.geojson) or Shapefile (.shp).')
+    for v in vec:
         roi = gp.GeoDataFrame.from_file(v)
         if not roi.crs == 'EPSG:4326':
             roi = roi.to_crs('EPSG:4326')
         if len(roi) > 1:
-            print('Multi-feature polygon detected. Only the first feature will be used to subset the GEDI data!')
-        
+            print('WARNING: Multi-feature polygon detected. Only the first feature will be used to subset the GEDI data!')
         v_basename = Path(v).name.split('.')[0]
         out[v_basename] = {'geo': roi.geometry[0], 'gdf': None}
     
