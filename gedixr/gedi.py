@@ -1,7 +1,5 @@
 from pathlib import Path
-import re
 import warnings
-from datetime import datetime
 from tqdm import tqdm
 import h5py
 import pandas as pd
@@ -79,8 +77,8 @@ def extract_data(directory, gedi_product='L2B', filter_month=(1, 12), subset_vec
     gdf_list_no_spatial_subset = []
     for i, fp in enumerate(tqdm(filepaths)):
         
-        # Filter by month of acquisition
-        date = _date_from_gedi_file(gedi_path=fp)
+        # (2) Filter by month of acquisition and beam type
+        date = ancil.date_from_gedi_file(gedi_path=fp)
         if not filter_month[0] <= date.month <= filter_month[1]:
             msg = f'Time of acquisition outside of filter range: month_min={filter_month[0]}, ' \
                   f'month_max={filter_month[1]}'
@@ -145,24 +143,6 @@ def extract_data(directory, gedi_product='L2B', filter_month=(1, 12), subset_vec
             out_gpkg = out_gpkg_base.parent / (out_gpkg_base.name + f'__{gedi_product}' + '.gpkg')
             out.to_file(out_gpkg, driver='GPKG')
         return out
-
-
-def _date_from_gedi_file(gedi_path):
-    """
-    Extracts the date from a GEDI L2A/L2B filepath and converts it to a datetime.datetime object.
-
-    Parameters
-    ----------
-    gedi_path: Path
-        Path to a GEDI L2A/L2B file.
-
-    Returns
-    -------
-    date: datetime.datetime
-    """
-    date_str = re.search('[0-9]{13}', gedi_path.name).group()
-    date = datetime.strptime(date_str, '%Y%j%H%M%S')
-    return date
 
 
 def _extract_gedi_l2a(gedi_file, beams, acq_time, log_handler):
