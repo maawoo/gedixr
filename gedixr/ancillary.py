@@ -1,7 +1,73 @@
 from pathlib import Path
 import re
+import logging
 from datetime import datetime
 import geopandas as gp
+
+
+def set_logging(directory):
+    """
+    Set logging for the current process.
+
+    Parameters
+    ----------
+    directory: Path
+        Directory in which to store logfiles. Will create a subdirectory called '<directory>/log'.
+
+    Returns
+    -------
+    log_local: logging.Logger
+        The log handler for the current process.
+    """
+    now = datetime.now().strftime('%Y%m%dT%H%M%S')
+    
+    log_local = logging.getLogger(__name__)
+    log_local.setLevel(logging.DEBUG)
+    
+    log_file = directory.joinpath('log', f"{now}.log")
+    log_file.parent.mkdir(exist_ok=True)
+    
+    fh = logging.FileHandler(filename=log_file, mode='a')
+    form = logging.Formatter("[%(asctime)s] [%(levelname)8s] %(message)s")
+    fh.setFormatter(form)
+    log_local.addHandler(fh)
+    
+    return log_local, now
+
+
+def log(handler, mode, file, msg):
+    """
+    Format and handle log messages during processing.
+
+    Parameters
+    ----------
+    handler: logging.Logger
+        Log handler initiated with the function `set_logging`.
+    mode: str
+        One of ['info', 'warning', 'error', 'exception']. Calls the respective logging helper function.
+        E.g. `logging.info()`; https://docs.python.org/3/library/logging.html#logging.info
+    file: str
+        File that is being processed. E.g. a GEDI L2A/L2B file.
+    msg: str or Exception
+        The massage that should be logged.
+
+    Returns
+    -------
+    None
+    """
+    message = f'{file} -- {msg}'
+    message = message.format(file=file, msg=msg)
+    
+    if mode == 'info':
+        handler.info(message)
+    elif mode == 'error':
+        handler.error(message, exc_info=False)
+    elif mode == 'warning':
+        handler.warning(message)
+    elif mode == 'exception':
+        handler.exception(message)
+    else:
+        raise RuntimeError('log mode {} is not supported'.format(mode))
 
 
 def prepare_roi(vec):
@@ -11,7 +77,7 @@ def prepare_roi(vec):
 
     Parameters
     ----------
-    vec: str or list(str)
+    vec: Path or list(Path)
         Path or list of paths to vector files in a fiona supported format. If a multi-feature polygon is detected,
         the first feature will be used for subsetting.
 
@@ -22,7 +88,7 @@ def prepare_roi(vec):
         {'<Vector Basename>': {'geo': shapely.geometry.polygon.Polygon,
                                'gdf': None}}
     """
-    if isinstance(vec, str):
+    if not isinstance(vec, list):
         vec = [vec]
     
     out = {}
