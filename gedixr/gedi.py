@@ -1,5 +1,6 @@
 from pathlib import Path
 import warnings
+import logging
 from tqdm import tqdm
 import h5py
 import pandas as pd
@@ -134,10 +135,11 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         except Exception as msg:
             ancil.log(handler=log_handler, mode='exception', file=fp.name, msg=str(msg))
     
+    ancil.close_logging(log_handler=log_handler)
+    
     # (7) & (8)
     out_dir = directory / 'extracted'
     out_dir.mkdir(exist_ok=True)
-    log_handler.handlers[0].close()
     if spatial_subset:
         if save_gpkg:
             for vec_base, _dict in out_dict.items():

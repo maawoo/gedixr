@@ -70,6 +70,26 @@ def log(handler, mode, file, msg):
         raise RuntimeError('log mode {} is not supported'.format(mode))
 
 
+def close_logging(log_handler):
+    """
+    Close logging for the current process. This is necessary to avoid appending to the previous log file when
+    executing the same process repeatedly.
+    
+    Parameters
+    ----------
+    log_handler: logging.Logger
+        Log handler initiated with the function `set_logging`.
+
+    Returns
+    -------
+    None
+    """
+    for handler in log_handler.handlers[:]:
+        if isinstance(handler, logging.FileHandler):
+            handler.close()
+            log_handler.removeHandler(handler)
+
+
 def prepare_roi(vec):
     """
     Prepares a vector file or list of vector files for spatial subsetting by extracting the geometry of each vector file
