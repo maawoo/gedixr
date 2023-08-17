@@ -10,6 +10,7 @@ from shapely.geometry import Point
 from shapely.errors import ShapelyDeprecationWarning
 
 from gedixr import log
+import gedixr.ancillary as ancil
 
 
 def extract_data(directory, gedi_product='L2B', filter_month=(1, 12), subset_vector=None, logger=None, save_gpkg=True,
@@ -55,7 +56,7 @@ def extract_data(directory, gedi_product='L2B', filter_month=(1, 12), subset_vec
     
     spatial_subset = False
     if subset_vector is not None:
-        out_dict = prepare_roi(vector=subset_vector)
+        out_dict = ancil.prepare_roi(vec=subset_vector)
         spatial_subset = True
     
     # TODO: Processing runs overwrite each other because the log handler persists!
@@ -144,40 +145,6 @@ def extract_data(directory, gedi_product='L2B', filter_month=(1, 12), subset_vec
             out_gpkg = out_gpkg_base.parent / (out_gpkg_base.name + f'__{gedi_product}' + '.gpkg')
             out.to_file(out_gpkg, driver='GPKG')
         return out
-
-
-def prepare_roi(vec):
-    """
-    Prepares a vector file or list of vector files for spatial subsetting by extracting the geometry of each vector file
-    and storing it in a dictionary.
-    
-    Parameters
-    ----------
-    vec: str or list(str)
-        Path or list of paths to vector files in a fiona supported format. If a multi-feature polygon is detected,
-        the first feature will be used for subsetting.
-    
-    Returns
-    -------
-    out: dict
-        Dictionary with key-value pairs:
-        {'<Vector Basename>': {'geo': shapely.geometry.polygon.Polygon,
-                               'gdf': None}}
-    """
-    if isinstance(vec, str):
-        vec = [vec]
-    
-    out = {}
-    for v in vec:
-        roi = gp.GeoDataFrame.from_file(v)
-        if not roi.crs == 'EPSG:4326':
-            roi = roi.to_crs('EPSG:4326')
-        if len(roi) > 1:
-            print('WARNING: Multi-feature polygon detected. Only the first feature will be used to subset the GEDI data!')
-        v_basename = Path(v).name.split('.')[0]
-        out[v_basename] = {'geo': roi.geometry[0], 'gdf': None}
-    
-    return out
 
 
 def _date_from_gedi_file(gedi_path):
