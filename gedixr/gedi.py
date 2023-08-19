@@ -54,10 +54,8 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
                                    'gdf': geopandas.geodataframe.GeoDataFrame}
             }
     """
-    if isinstance(directory, str):
-        directory = Path(directory)
-    if isinstance(subset_vector, str):
-        subset_vector = Path(subset_vector)
+    directory = Path(directory)
+    subset_vector = Path(subset_vector)
     if isinstance(subset_vector, list) and all(isinstance(x, str) for x in subset_vector):
         subset_vector = [Path(x) for x in subset_vector]
     
