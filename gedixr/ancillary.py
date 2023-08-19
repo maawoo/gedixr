@@ -35,10 +35,10 @@ def set_logging(directory):
     return log_local, now
 
 
-def log(handler, mode, file, msg):
+def log(handler, mode, msg, file=None):
     """
     Format and handle log messages during processing.
-
+    
     Parameters
     ----------
     handler: logging.Logger
@@ -46,17 +46,20 @@ def log(handler, mode, file, msg):
     mode: str
         One of ['info', 'warning', 'error', 'exception']. Calls the respective logging helper function.
         E.g. `logging.info()`; https://docs.python.org/3/library/logging.html#logging.info
-    file: str
-        File that is being processed. E.g. a GEDI L2A/L2B file.
     msg: str or Exception
         The massage that should be logged.
-
+    file: str, optional
+        File that is being processed. E.g. a GEDI L2A/L2B file.
+    
     Returns
     -------
     None
     """
-    message = f'{file} -- {msg}'
-    message = message.format(file=file, msg=msg)
+    if file is not None:
+        message = f'{file} -- {msg}'
+        message = message.format(file=file, msg=msg)
+    else:
+        message = msg
     
     if mode == 'info':
         handler.info(message)

@@ -63,6 +63,7 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
     
     log_handler, now = ancil.set_logging(directory)
     warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)  # https://gis.stackexchange.com/a/433423
+    n_err = 0
     
     allowed = ['L2A', 'L2B']
     if gedi_product not in allowed:
@@ -134,25 +135,32 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         
         except Exception as msg:
             ancil.log(handler=log_handler, mode='exception', file=fp.name, msg=str(msg))
+            n_err += 1
     
-    ancil.close_logging(log_handler=log_handler)
-    
-    # (7) & (8)
-    out_dir = directory / 'extracted'
-    out_dir.mkdir(exist_ok=True)
-    if spatial_subset:
-        if save_gpkg:
-            for vec_base, _dict in out_dict.items():
-                if _dict['gdf'] is not None:
-                    out_gpkg = out_dir / (now + f'__{gedi_product}_' + '_subset_' + vec_base + '.gpkg')
-                    _dict['gdf'].to_file(out_gpkg, driver='GPKG')
-        return out_dict
-    else:
-        out = pd.concat(gdf_list_no_spatial_subset)
-        if save_gpkg:
-            out_gpkg = out_dir / (now + f'__{gedi_product}' + '.gpkg')
-            out.to_file(out_gpkg, driver='GPKG')
-        return out
+    try:
+        # (7) & (8)
+        out_dir = directory / 'extracted'
+        out_dir.mkdir(exist_ok=True)
+        if spatial_subset:
+            if save_gpkg:
+                for vec_base, _dict in out_dict.items():
+                    if _dict['gdf'] is not None:
+                        out_gpkg = out_dir / (now + f'__{gedi_product}_' + '_subset_' + vec_base + '.gpkg')
+                        _dict['gdf'].to_file(out_gpkg, driver='GPKG')
+            return out_dict
+        else:
+            out = pd.concat(gdf_list_no_spatial_subset)
+            if save_gpkg:
+                out_gpkg = out_dir / (now + f'__{gedi_product}' + '.gpkg')
+                out.to_file(out_gpkg, driver='GPKG')
+            return out
+    except Exception as msg:
+        ancil.log(handler=log_handler, mode='exception', msg=str(msg))
+        n_err += 1
+    finally:
+        ancil.close_logging(log_handler=log_handler)
+        if n_err > 0:
+            print(f"WARNING: {n_err} errors occurred during the extraction process. Please check the log file!")
 
 
 def _from_l2a(gedi_file, beams, acq_time):
