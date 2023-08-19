@@ -7,3 +7,4 @@ dependencies:
   - geopandas>=0.13
   - h5netcdf
   - tqdm
+  - geocube

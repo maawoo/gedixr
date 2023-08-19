@@ -1,5 +1,6 @@
 import pandas as pd
 import geopandas as gp
+from geocube.api.core import make_geocube
 
 
 def gpkg_to_gdf(gpkg_l2a=None, gpkg_l2b=None):
@@ -57,3 +58,34 @@ def merge_gdf(gdf_l2a, gdf_l2b):
     merged_gdf = gdf_l2b.merge(gdf_l2a, how='inner', on='geometry')
     merged_gdf['acq_time'] = pd.to_datetime(merged_gdf['acq_time'])
     return merged_gdf
+
+
+def gdf_to_xr(gdf, gedi_vars=None, resolution=None):
+    """
+    Rasterizes a GeoDataFrame containing GEDI L2A/L2B data to an xarray Dataset.
+
+    Parameters
+    ----------
+    gdf: geopandas.GeoDataFrame
+        GeoDataFrame containing GEDI L2A/L2B data.
+    gedi_vars: list(str)
+        List of attribute names (i.e. GEDI variables) to be included. Defaault is None, which will include all
+        variables.
+    resolution:
+        A tuple of the pixel spacing of the returned data (Y, X). This includes the direction
+        (as indicated by a positive or negative number). Default is (-0.0003, 0.0003), which corresponds to a spacing
+        of 30 m.
+
+    Returns
+    -------
+    cube: xarray.Dataset
+
+    """
+    if resolution is None:
+        resolution = (-0.0003, 0.0003)
+    cube = make_geocube(gdf,
+                        measurements=gedi_vars,
+                        output_crs=f'epsg:{gdf.crs.to_epsg()}',
+                        resolution=resolution)
+    
+    return cube
