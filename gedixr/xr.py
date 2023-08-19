@@ -63,7 +63,7 @@ def merge_gdf(gdf_l2a, gdf_l2b):
 def gdf_to_xr(gdf, gedi_vars=None, resolution=None):
     """
     Rasterizes a GeoDataFrame containing GEDI L2A/L2B data to an xarray Dataset.
-
+    
     Parameters
     ----------
     gdf: geopandas.GeoDataFrame
@@ -75,17 +75,13 @@ def gdf_to_xr(gdf, gedi_vars=None, resolution=None):
         A tuple of the pixel spacing of the returned data (Y, X). This includes the direction
         (as indicated by a positive or negative number). Default is (-0.0003, 0.0003), which corresponds to a spacing
         of 30 m.
-
+    
     Returns
     -------
     cube: xarray.Dataset
-
+        An xarray Dataset containing the rasterized GEDI data.
     """
     if resolution is None:
         resolution = (-0.0003, 0.0003)
-    cube = make_geocube(gdf,
-                        measurements=gedi_vars,
-                        output_crs=f'epsg:{gdf.crs.to_epsg()}',
-                        resolution=resolution)
-    
-    return cube
+    xr_ds = make_geocube(gdf, measurements=gedi_vars, output_crs=f'epsg:{gdf.crs.to_epsg()}', resolution=resolution)
+    return xr_ds
