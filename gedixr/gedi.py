@@ -102,9 +102,9 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
             
             # (3) Extract data and convert to Dataframe
             if gedi_product == 'L2A':
-                df = pd.DataFrame(_from_l2a(gedi_file=gedi, beams=beams, acq_time=date, log_handler=log_handler))
+                df = pd.DataFrame(_from_l2a(gedi_file=gedi, beams=beams, acq_time=date))
             else:
-                df = pd.DataFrame(_from_l2b(gedi_file=gedi, beams=beams, acq_time=date, log_handler=log_handler))
+                df = pd.DataFrame(_from_l2b(gedi_file=gedi, beams=beams, acq_time=date))
             
             # (4) Filter by quality flags
             df = filter_quality(df=df, log_handler=log_handler, gedi_path=fp)
@@ -155,7 +155,7 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         return out
 
 
-def _from_l2a(gedi_file, beams, acq_time, log_handler):
+def _from_l2a(gedi_file, beams, acq_time):
     """
     Extracts general(*), quality(**) and analysis(***) related values from a GEDI L2A HDF5 file.
     
@@ -171,8 +171,6 @@ def _from_l2a(gedi_file, beams, acq_time, log_handler):
         List of GEDI beams to extract values from.
     acq_time: datetime.datetime
         Acquisition date of the GEDI HDF5 file.
-    log_handler: logging.Logger
-        Current log handler.
     
     Returns
     -------
@@ -207,7 +205,7 @@ def _from_l2a(gedi_file, beams, acq_time, log_handler):
     return out
 
 
-def _from_l2b(gedi_file, beams, acq_time, log_handler):
+def _from_l2b(gedi_file, beams, acq_time):
     """
     Extracts general(*), quality(**) and analysis(***) related values from a GEDI L2B HDF5 file.
     
@@ -223,8 +221,6 @@ def _from_l2b(gedi_file, beams, acq_time, log_handler):
         List of GEDI beams to extract values from.
     acq_time: datetime.datetime
         Acquisition date of the GEDI HDF5 file.
-    log_handler: logging.Logger
-        Current log handler.
     
     Returns
     -------
