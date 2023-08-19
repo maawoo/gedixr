@@ -177,7 +177,7 @@ def _from_l2a(gedi_file, beams, acq_time):
     out: dict
         Dictionary containing extracted values.
     """
-    at, shot, lon, lat, degrade, quality, sensitivity, rh98 = ([] for i in range(9))
+    at, shot, lon, lat, degrade, quality, sensitivity, rh98 = ([] for i in range(8))
     for beam in beams:
         # General
         [shot.append(str(h)) for h in gedi_file[f'{beam}/shot_number'][()]]
