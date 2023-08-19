@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "gedixr"
+version = "0.1.0"
+description = "GEDI L2A/L2B -> Geopackage -> GeoDataFrame/Xarray"
+authors = ["Marco Wolsza"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/maawoo/gedixr"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+geopandas = "^0.13"
+h5netcdf = "*"
+tqdm = "*"
+geocube = "*"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
