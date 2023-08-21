@@ -54,18 +54,15 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
                                    'gdf': geopandas.geodataframe.GeoDataFrame}
             }
     """
-    directory = Path(directory)
-    subset_vector = Path(subset_vector)
-    if isinstance(subset_vector, list) and all(isinstance(x, str) for x in subset_vector):
-        subset_vector = [Path(x) for x in subset_vector]
-    
-    log_handler, now = ancil.set_logging(directory)
-    warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)  # https://gis.stackexchange.com/a/433423
-    n_err = 0
-    
+    directory = ancil.to_pathlib(x=directory)
+    subset_vector = ancil.to_pathlib(x=subset_vector)
     allowed = ['L2A', 'L2B']
     if gedi_product not in allowed:
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of {allowed}; got '{gedi_product}' instead.")
+    
+    log_handler, now = ancil.set_logging(directory)
+    n_err = 0
+    warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)  # https://gis.stackexchange.com/a/433423
     
     spatial_subset = False
     if subset_vector is not None:

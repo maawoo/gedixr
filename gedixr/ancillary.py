@@ -145,3 +145,24 @@ def date_from_gedi_file(gedi_path):
     date_str = date_str[2:]
     date = datetime.strptime(date_str, '%Y%j%H%M%S')
     return date
+
+
+def to_pathlib(x):
+    """
+    Convert a string or list of strings to a pathlib.Path or list of pathlib.Path objects.
+    
+    Parameters
+    ----------
+    x: str or list(str)
+        String or list of strings to be converted to pathlib.Path objects.
+
+    Returns
+    -------
+    pathlib.Path or list(pathlib.Path)
+    """
+    if isinstance(x, str):
+        return Path(x)
+    elif isinstance(x, list) and all([isinstance(i, str) for i in x]):
+        return [Path(i) for i in x]
+    else:
+        raise TypeError('Input must be a string or list of strings.')
