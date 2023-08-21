@@ -108,7 +108,6 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
             # (5) Convert to GeoDataFrame and set 'Shot Number' as index
             df['geometry'] = df.apply(lambda row: Point(row.longitude, row.latitude), axis=1)
             df = df.drop(columns=['latitude', 'longitude'])
-            df = df.set_index('shot')
             gdf = gp.GeoDataFrame(df)
             gdf.crs = 'EPSG:4326'
             
