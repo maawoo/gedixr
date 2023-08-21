@@ -17,11 +17,11 @@ pip install git+https://github.com/maawoo/gedixr.git
 ```
 
 ## Usage
-When you download<sup>*</sup> GEDI L2A/L2B v002 files from [NASA Earthdata Search](https://search.earthdata.nasa.gov/search?q=gedi+v002), 
-you will end up with a bunch of zipped HDF5 files. After unzipping<sup>*</sup> them, you can use the `extract_data` 
-function to recursively find all relevant files in a directory and extract the following biophysical metrics<sup>*</sup> for each shot 
+When you download<sup>1</sup> GEDI L2A/L2B v002 files from [NASA Earthdata Search](https://search.earthdata.nasa.gov/search?q=gedi+v002), 
+you will end up with a bunch of zipped HDF5 files. After unzipping<sup>1</sup> them, you can use the `extract_data` 
+function to recursively find all relevant files in a directory and extract the following biophysical metrics<sup>1</sup> for each shot 
 to further work with them as a [`geopandas.GeoDataFrame`](https://geopandas.org/en/stable/docs/reference/api/geopandas.GeoDataFrame.html) or 
-[xarray.Dataset](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html):
+[`xarray.Dataset`](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html):
 
 **L2A**:
 - `rh98`: Relative height metrics at 98% interval
@@ -64,7 +64,7 @@ gdf = gpkg_to_gdf(gpkg_l2a="path/to/l2a.gpkg", gpkg_l2b="path/to/l2b.gpkg")  # `
 xr_ds = gdf_to_xr(gdf=gdf)
 ```
 
-<sup>*</sup> See [Limitations](#limitations) section below for relevant notes!
+<sup>1</sup>See [Limitations](#limitations) section below for relevant notes!
 
 ## Limitations
 - The scripts only work with GEDI L2A/L2B **V002** products.
