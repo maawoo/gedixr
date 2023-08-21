@@ -55,12 +55,12 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
             }
     """
     directory = ancil.to_pathlib(x=directory)
-    subset_vector = ancil.to_pathlib(x=subset_vector)
+    subset_vector = ancil.to_pathlib(x=subset_vector) if subset_vector is not None else None
     allowed = ['L2A', 'L2B']
     if gedi_product not in allowed:
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of {allowed}; got '{gedi_product}' instead.")
     
-    log_handler, now = ancil.set_logging(directory)
+    log_handler, now = ancil.set_logging(directory, gedi_product)
     n_err = 0
     warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)  # https://gis.stackexchange.com/a/433423
     
@@ -108,7 +108,6 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
             # (5) Convert to GeoDataFrame and set 'Shot Number' as index
             df['geometry'] = df.apply(lambda row: Point(row.longitude, row.latitude), axis=1)
             df = df.drop(columns=['latitude', 'longitude'])
-            df = df.set_index('shot')
             gdf = gp.GeoDataFrame(df)
             gdf.crs = 'EPSG:4326'
             

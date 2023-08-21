@@ -5,15 +5,17 @@ from datetime import datetime
 import geopandas as gp
 
 
-def set_logging(directory):
+def set_logging(directory, gedi_product):
     """
     Set logging for the current process.
-
+    
     Parameters
     ----------
     directory: Path
         Directory in which to store logfiles. Will create a subdirectory called '<directory>/log'.
-
+    gedi_product: str
+        One of ['L2A', 'L2B']. Used to name the log file.
+    
     Returns
     -------
     log_local: logging.Logger
@@ -24,7 +26,7 @@ def set_logging(directory):
     log_local = logging.getLogger(__name__)
     log_local.setLevel(logging.DEBUG)
     
-    log_file = directory.joinpath('log', f"{now}.log")
+    log_file = directory.joinpath('log', f"{now}__{gedi_product}.log")
     log_file.parent.mkdir(exist_ok=True)
     
     fh = logging.FileHandler(filename=log_file, mode='a')
@@ -160,7 +162,9 @@ def to_pathlib(x):
     -------
     pathlib.Path or list(pathlib.Path)
     """
-    if isinstance(x, str):
+    if isinstance(x, Path) or isinstance(x, list) and all([isinstance(i, Path) for i in x]):
+        return x
+    elif isinstance(x, str):
         return Path(x)
     elif isinstance(x, list) and all([isinstance(i, str) for i in x]):
         return [Path(i) for i in x]
