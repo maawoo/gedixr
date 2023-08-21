@@ -60,7 +60,7 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
     if gedi_product not in allowed:
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of {allowed}; got '{gedi_product}' instead.")
     
-    log_handler, now = ancil.set_logging(directory)
+    log_handler, now = ancil.set_logging(directory, gedi_product)
     n_err = 0
     warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)  # https://gis.stackexchange.com/a/433423
     
