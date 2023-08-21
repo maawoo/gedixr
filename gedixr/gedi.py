@@ -55,7 +55,7 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
             }
     """
     directory = ancil.to_pathlib(x=directory)
-    subset_vector = ancil.to_pathlib(x=subset_vector)
+    subset_vector = ancil.to_pathlib(x=subset_vector) if subset_vector is not None else None
     allowed = ['L2A', 'L2B']
     if gedi_product not in allowed:
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of {allowed}; got '{gedi_product}' instead.")

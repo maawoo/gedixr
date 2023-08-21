@@ -160,7 +160,9 @@ def to_pathlib(x):
     -------
     pathlib.Path or list(pathlib.Path)
     """
-    if isinstance(x, str):
+    if isinstance(x, Path) or isinstance(x, list) and all([isinstance(i, Path) for i in x]):
+        return x
+    elif isinstance(x, str):
         return Path(x)
     elif isinstance(x, list) and all([isinstance(i, str) for i in x]):
         return [Path(i) for i in x]
