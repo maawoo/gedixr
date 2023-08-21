@@ -214,7 +214,7 @@ def _from_l2b(gedi_file, beams, acq_time):
     
     (*)   `/<BEAM>/shot_number`, `/<BEAM>/geolocation/lon_lowestmode`, `/<BEAM>/geolocation/lat_lowestmode`
     (**)  `/<BEAM>/geolocation/degrade_flag`, `/<BEAM>/l2b_quality_flag`, `/<BEAM>/sensitivity`
-    (***) `/<BEAM>/cover`, `/<BEAM>/fhd_normal`, `/<BEAM>/pai`
+    (***) `/<BEAM>/cover`, `/<BEAM>/fhd_normal`, `/<BEAM>/pai`, `/<BEAM>/rh100`
     
     Parameters
     ----------
@@ -246,6 +246,7 @@ def _from_l2b(gedi_file, beams, acq_time):
         [cover.append(h) for h in gedi_file[f'{beam}/cover'][()]]
         [fhd_index.append(h) for h in gedi_file[f'{beam}/fhd_normal'][()]]
         [pai.append(h) for h in gedi_file[f'{beam}/pai'][()]]
+        [rh100.append(h) for h in gedi_file[f'{beam}/rh100'][()]]
     
     [at.append(str(acq_time)) for s in range(len(shot))]
     out = {'shot': shot,
@@ -257,8 +258,9 @@ def _from_l2b(gedi_file, beams, acq_time):
            'sensitivity': sensitivity,
            'tcc': cover,
            'fhdi': fhd_index,
-           'pai': pai}
-    del at, shot, lon, lat, degrade, quality, sensitivity, cover, fhd_index, pai
+           'pai': pai,
+           'rh100': rh100}
+    del at, shot, lon, lat, degrade, quality, sensitivity, cover, fhd_index, pai, rh100
     return out
 
 
