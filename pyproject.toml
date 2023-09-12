@@ -1,18 +1,22 @@
-[tool.poetry]
+[project]
 name = "gedixr"
 version = "0.1.0"
+authors = [
+  {name="Marco Wolsza", email="marco.wolsza@uni-jena.de" },
+]
 description = "GEDI L2A/L2B -> Geopackage -> GeoDataFrame/Xarray"
-authors = ["Marco Wolsza"]
-license = "MIT"
 readme = "README.md"
-repository = "https://github.com/maawoo/gedixr"
+license = {text = "MIT License"}
+requires-python = ">=3.10"
+dependencies = [
+    "geopandas>=0.13",
+    "h5netcdf",
+    "tqdm",
+    "geocube",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-geopandas = "^0.13"
-h5netcdf = "*"
-tqdm = "*"
-geocube = "*"
+[project.urls]
+Repository = "https://github.com/maawoo/gedixr"
 
 [build-system]
 requires = ["setuptools", "wheel"]
