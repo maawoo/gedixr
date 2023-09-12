@@ -166,7 +166,7 @@ def to_pathlib(x):
         return x
     elif isinstance(x, str):
         return Path(x)
-    elif isinstance(x, list) and all([isinstance(i, str) for i in x]):
+    elif isinstance(x, list) and any([isinstance(i, str) for i in x]):
         return [Path(i) for i in x]
     else:
         raise TypeError('Input must be a string or list of strings.')
