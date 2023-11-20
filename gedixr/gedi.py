@@ -220,10 +220,12 @@ def _from_file(gedi_file, beams, variables, acq_time='Acquisition Time'):
     out = {}
     for beam in beams:
         for k, v in variables:
-            if not v.startswith('rh'):
-                out[k] = gedi_file[f'{beam}/{v}'][()]
-            else:
+            if v.startswith('rh') and v != 'rh100':
                 out[k] = [round(h[int(v[2:])] * 100) for h in gedi_file[f'{beam}/rh'][()]]
+            elif v == 'shot_number':
+                out[k] = [str(h) for h in gedi_file[f'{beam}/{v}'][()]]
+            else:
+                out[k] = gedi_file[f'{beam}/{v}'][()]
     
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot_number']))]
     
