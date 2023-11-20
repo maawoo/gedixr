@@ -12,6 +12,8 @@ import gedixr.ancillary as ancil
 
 ALLOWED_PRODUCTS = ['L2A', 'L2B']
 
+FULL_POWER_BEAMS = ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
+
 VARIABLES_BASIC_L2A = [('Shot Number', 'shot_number'),
                        ('Latitude', 'lat_lowestmode'),
                        ('Longitude', 'lon_lowestmode'),
@@ -52,8 +54,6 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         Root directory to recursively search for GEDI L2A/L2B files.
     gedi_product: str, optional
         GEDI product type. Either 'L2A' or 'L2B'. Default is 'L2B'.
-    only_full_power: bool, optional
-        Only keep shots from full power beams? Default is True.
     filter_month: tuple(int), optional
         Filter GEDI shots by month of the year? E.g. (6, 8) to only keep shots that were acquired between June 1st and
         August 31st of each year. Defaults to (1, 12), which keeps all shots of each year.
@@ -65,7 +65,8 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         List of tuples containing the variable name and the respective GEDI layer name. Defaults to
         `gedixr.gedi.VARIABLES_BASIC_L2A` for L2A and `gedixr.gedi.VARIABLES_BASIC_L2B` for L2B.
     beams: list(str), optional
-        List of GEDI beams to extract values from. Defaults to ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
+        List of GEDI beams to extract values from. Defaults to full power beams:
+        ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
     save_gpkg: bool, optional
         Save resulting GeoDataFrame as a Geopackage file in a subdirectory called `extracted` of the directory specified
         with `gedi_dir`? Default is True.
@@ -97,7 +98,7 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         out_dict = ancil.prepare_roi(vec=subset_vector)
     
     if beams is None:
-        beams = ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
+        beams = FULL_POWER_BEAMS
     
     if variables is None:
         if gedi_product == 'L2A':
@@ -128,12 +129,9 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         
         try:
             gedi = h5py.File(fp, 'r')
-            beams_ = [x for x in gedi.keys() if x.startswith('BEAM')]
-            if only_full_power:
-                beams_ = [x for x in beams_ if x in beams]
             
             # (3) Extract data and convert to Dataframe
-            df = pd.DataFrame(_from_file(gedi_file=gedi, beams=beams_, variables=variables, acq_time=date))
+            df = pd.DataFrame(_from_file(gedi_file=gedi, beams=beams, variables=variables, acq_time=date))
             
             # (4) Filter by quality flags
             df = filter_quality(df=df, log_handler=log_handler, gedi_path=fp)
