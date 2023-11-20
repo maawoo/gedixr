@@ -227,8 +227,7 @@ def _from_file(gedi_file, beams, variables, acq_time='Acquisition Time'):
             else:
                 out[k] = gedi_file[f'{beam}/{v}'][()]
     
-    out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot_number']))]
-    
+    out['acq_time'] = [(str(acq_time)) for _ in range(len(out['Shot Number']))]
     return out
 
 
