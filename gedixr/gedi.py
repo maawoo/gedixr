@@ -38,7 +38,7 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
                  subset_vector=None, save_gpkg=True, dry_run=False):
     """
     Extracts data from GEDI L2A or L2B files in HDF5 format using the following steps:
-
+    
     (1) Search a root directory recursively for GEDI L2A or L2B HDF5 files.
     (2) OPTIONAL: Filter files by month of acquisition and the respective beams (full power or not).
     (3) Extract general, quality and analysis related information from each file into a pandas.Dataframe.
@@ -47,7 +47,7 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
     (6) OPTIONAL: Subset shots spatially using intersection via provided vector file or list of vector files.
     (7) OPTIONAL: Save the results as a GeoPackage file or multiple files (one per provided vector file).
     (8) Return a GeoDataFrame or dictionary of GeoDataFrame objects (one per provided vector file).
-
+    
     Parameters
     ----------
     directory: str or Path
@@ -63,7 +63,7 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         recommended to give those files reasonable names beforehand!
     variables: list(tuple(str)), optional
         List of tuples containing the variable name and the respective GEDI layer name. Defaults to
-        `gedixr.gedi.VARIABLES_BASIC_L2A` for L2A and `gedixr.gedi.VARIABLES_BASIC_L2B` for L2B.
+        `gedixr.gedi.VARIABLES_BASIC_L2A` for L2A products and `gedixr.gedi.VARIABLES_BASIC_L2B` for L2B products.
     beams: list(str), optional
         List of GEDI beams to extract values from. Defaults to full power beams:
         ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
@@ -72,7 +72,7 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         with `gedi_dir`? Default is True.
     dry_run: bool, optional
         If set to True, will only print out how many GEDI files were found. Default is False.
-
+    
     Returns
     -------
     geopandas.geodataframe.GeoDataFrame or dictionary of geopandas.geodataframe.GeoDataFrame
@@ -81,18 +81,17 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
                                    'gdf': geopandas.geodataframe.GeoDataFrame}
             }
     """
-    directory = ancil.to_pathlib(x=directory)
-    subset_vector = ancil.to_pathlib(x=subset_vector) if subset_vector is not None else None
-    
     if gedi_product not in ALLOWED_PRODUCTS:
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of {ALLOWED_PRODUCTS}; "
                            f"got {gedi_product} instead")
     
+    directory = ancil.to_pathlib(x=directory)
+    subset_vector = ancil.to_pathlib(x=subset_vector) if subset_vector is not None else None
     log_handler, now = ancil.set_logging(directory, gedi_product)
     n_err = 0
     
-    # https://gis.stackexchange.com/a/433423
     if subset_vector is not None:
+        # https://gis.stackexchange.com/a/433423
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)
         out_dict = ancil.prepare_roi(vec=subset_vector)
@@ -193,7 +192,7 @@ def _from_file(gedi_file, beams, variables, acq_time='Acquisition Time'):
     Extracts general(*), quality(**) and analysis(***) related values from a GEDI HDF5 file.
     Variables can be adjusted by providing a variable list of tuples containing the variable
     name and the respective GEDI layer name.
-
+    
     L2A:
     (*)   `/<BEAM>/shot_number`, `/<BEAM>/lon_lowestmode`, `/<BEAM>/lat_lowestmode`
     (**)  `/<BEAM>/degrade_flag`, `/<BEAM>/quality_flag`, `/<BEAM>/sensitivity`
@@ -203,7 +202,7 @@ def _from_file(gedi_file, beams, variables, acq_time='Acquisition Time'):
     (*)   `/<BEAM>/shot_number`, `/<BEAM>/geolocation/lon_lowestmode`, `/<BEAM>/geolocation/lat_lowestmode`
     (**)  `/<BEAM>/geolocation/degrade_flag`, `/<BEAM>/l2b_quality_flag`, `/<BEAM>/sensitivity`
     (***) `/<BEAM>/cover`, `/<BEAM>/fhd_normal`, `/<BEAM>/pai`, `/<BEAM>/rh100`
-
+    
     Parameters
     ----------
     gedi_file: h5py._hl.files.File
@@ -212,7 +211,7 @@ def _from_file(gedi_file, beams, variables, acq_time='Acquisition Time'):
         List of GEDI beams to extract values from.
     acq_time: datetime.datetime
         Acquisition date of the GEDI HDF5 file.
-
+    
     Returns
     -------
     out: dict
@@ -236,7 +235,7 @@ def filter_quality(df, log_handler, gedi_path):
     Filters a given pandas.Dataframe containing GEDI data using its quality flags. The values used here have been
     adopted from the official GEDI L2A/L2B tutorials:
     https://git.earthdata.nasa.gov/projects/LPDUR/repos/gedi-v2-tutorials/browse
-
+    
     Parameters
     ----------
     df: :obj:`pandas.Dataframe`
@@ -245,7 +244,7 @@ def filter_quality(df, log_handler, gedi_path):
         Current log handler.
     gedi_path: Path
         Path to the current GEDI L2A/L2B file.
-
+    
     Returns
     -------
     df: pandas.Dataframe
