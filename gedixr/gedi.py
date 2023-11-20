@@ -14,24 +14,24 @@ ALLOWED_PRODUCTS = ['L2A', 'L2B']
 
 FULL_POWER_BEAMS = ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
 
-VARIABLES_BASIC_L2A = [('Shot Number', 'shot_number'),
-                       ('Latitude', 'lat_lowestmode'),
-                       ('Longitude', 'lon_lowestmode'),
-                       ('Degrade Flag', 'degrade_flag'),
-                       ('Quality Flag', 'quality_flag'),
-                       ('Sensitivity', 'sensitivity'),
-                       ('Relative Height bin95 (cm)', 'rh95'),
-                       ('Relative Height bin98 (cm)', 'rh98')]
+VARIABLES_BASIC_L2A = [('shot', 'shot_number'),
+                       ('latitude', 'lat_lowestmode'),
+                       ('longitude', 'lon_lowestmode'),
+                       ('degrade_flag', 'degrade_flag'),
+                       ('quality_flag', 'quality_flag'),
+                       ('sensitivity', 'sensitivity'),
+                       ('rh95', 'rh95'),
+                       ('rh98', 'rh98')]
 
-VARIABLES_BASIC_L2B = [('Shot Number', 'shot_number'),
-                       ('Latitude', 'geolocation/lat_lowestmode'),
-                       ('Longitude', 'geolocation/lon_lowestmode'),
-                       ('Degrade Flag', 'geolocation/degrade_flag'),
-                       ('Quality Flag', 'l2b_quality_flag'),
-                       ('Sensitivity', 'sensitivity'),
-                       ('Total Canopy Cover', 'cover'),
-                       ('Foliage Height Diversity Index', 'fhd_normal'),
-                       ('Total Plant Area Index', 'pai')]
+VARIABLES_BASIC_L2B = [('shot', 'shot_number'),
+                       ('latitude', 'geolocation/lat_lowestmode'),
+                       ('longitude', 'geolocation/lon_lowestmode'),
+                       ('degrade_flag', 'geolocation/degrade_flag'),
+                       ('quality_flag', 'l2b_quality_flag'),
+                       ('sensitivity', 'sensitivity'),
+                       ('tcc', 'cover'),
+                       ('fhd', 'fhd_normal'),
+                       ('pai', 'pai')]
 
 
 def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_month=(1, 12), variables=None, beams=None,
@@ -227,7 +227,7 @@ def _from_file(gedi_file, beams, variables, acq_time='Acquisition Time'):
             else:
                 out[k] = gedi_file[f'{beam}/{v}'][()]
     
-    out['acq_time'] = [(str(acq_time)) for _ in range(len(out['Shot Number']))]
+    out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
 
 
