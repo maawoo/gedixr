@@ -31,10 +31,11 @@ VARIABLES_BASIC_L2B = [('shot', 'shot_number'),
                        ('sensitivity', 'sensitivity'),
                        ('tcc', 'cover'),
                        ('fhd', 'fhd_normal'),
-                       ('pai', 'pai')]
+                       ('pai', 'pai'),
+                       ('rh100', 'rh100')]
 
 
-def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_month=(1, 12), variables=None, beams=None,
+def extract_data(directory, gedi_product='L2B', filter_month=(1, 12), variables=None, beams=None,
                  subset_vector=None, save_gpkg=True, dry_run=False):
     """
     Extracts data from GEDI L2A or L2B files in HDF5 format using the following steps:
@@ -62,8 +63,8 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         None, to keep all shots. Note that the basename of each vector file will be used in the output names, so it is
         recommended to give those files reasonable names beforehand!
     variables: list(tuple(str)), optional
-        List of tuples containing the variable name and the respective GEDI layer name. Defaults to
-        `gedixr.gedi.VARIABLES_BASIC_L2A` for L2A products and `gedixr.gedi.VARIABLES_BASIC_L2B` for L2B products.
+        List of tuples containing the desired column name in the returned GeoDataFrame and the respective GEDI layer name.
+        Defaults to `gedixr.gedi.VARIABLES_BASIC_L2A` for L2A products and `gedixr.gedi.VARIABLES_BASIC_L2B` for L2B products.
     beams: list(str), optional
         List of GEDI beams to extract values from. Defaults to full power beams:
         ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
@@ -160,7 +161,6 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
         except Exception as msg:
             ancil.log(handler=log_handler, mode='exception', file=fp.name, msg=str(msg))
             n_err += 1
-    
     try:
         # (7) & (8)
         out_dir = directory / 'extracted'
@@ -189,28 +189,19 @@ def extract_data(directory, gedi_product='L2B', only_full_power=True, filter_mon
 
 def _from_file(gedi_file, beams, variables, acq_time='Acquisition Time'):
     """
-    Extracts general(*), quality(**) and analysis(***) related values from a GEDI HDF5 file.
-    Variables can be adjusted by providing a variable list of tuples containing the variable
-    name and the respective GEDI layer name.
-    
-    L2A:
-    (*)   `/<BEAM>/shot_number`, `/<BEAM>/lon_lowestmode`, `/<BEAM>/lat_lowestmode`
-    (**)  `/<BEAM>/degrade_flag`, `/<BEAM>/quality_flag`, `/<BEAM>/sensitivity`
-    (***) `/<BEAM>/rh[98]*100` (98th bin converted to cm)
-
-    L2B:
-    (*)   `/<BEAM>/shot_number`, `/<BEAM>/geolocation/lon_lowestmode`, `/<BEAM>/geolocation/lat_lowestmode`
-    (**)  `/<BEAM>/geolocation/degrade_flag`, `/<BEAM>/l2b_quality_flag`, `/<BEAM>/sensitivity`
-    (***) `/<BEAM>/cover`, `/<BEAM>/fhd_normal`, `/<BEAM>/pai`, `/<BEAM>/rh100`
+    Extracts values from a GEDI HDF5 file.
     
     Parameters
     ----------
     gedi_file: h5py._hl.files.File
-        A loaded GEDI L2A HDF5 file.
+        A loaded GEDI HDF5 file.
     beams: list(str)
         List of GEDI beams to extract values from.
-    acq_time: datetime.datetime
-        Acquisition date of the GEDI HDF5 file.
+    variables: list(tuple(str)), optional
+        List of tuples containing the desired column name in the returned GeoDataFrame and the respective GEDI layer name.
+        Defaults to `gedixr.gedi.VARIABLES_BASIC_L2A` for L2A products and `gedixr.gedi.VARIABLES_BASIC_L2B` for L2B products.
+    acq_time: str
+        Name of the GEDI layer containing the acquisition time.
     
     Returns
     -------
