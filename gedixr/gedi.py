@@ -16,25 +16,25 @@ PATTERN_L2B = '*GEDI02_L2B*.h5'
 
 FULL_POWER_BEAMS = ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
 
-VARIABLES_BASIC_L2A = [('shot', 'shot_number'),
-                       ('latitude', 'lat_lowestmode'),
-                       ('longitude', 'lon_lowestmode'),
-                       ('degrade_flag', 'degrade_flag'),
-                       ('quality_flag', 'quality_flag'),
-                       ('sensitivity', 'sensitivity'),
-                       ('rh95', 'rh95'),
-                       ('rh98', 'rh98')]
-
-VARIABLES_BASIC_L2B = [('shot', 'shot_number'),
-                       ('latitude', 'geolocation/lat_lowestmode'),
-                       ('longitude', 'geolocation/lon_lowestmode'),
-                       ('degrade_flag', 'geolocation/degrade_flag'),
-                       ('quality_flag', 'l2b_quality_flag'),
-                       ('sensitivity', 'sensitivity'),
-                       ('tcc', 'cover'),
-                       ('fhd', 'fhd_normal'),
-                       ('pai', 'pai'),
-                       ('rh100', 'rh100')]
+DEFAULT_VARIABLES = {'L2A': [('shot', 'shot_number'),
+                             ('latitude', 'lat_lowestmode'),
+                             ('longitude', 'lon_lowestmode'),
+                             ('degrade_flag', 'degrade_flag'),
+                             ('quality_flag', 'quality_flag'),
+                             ('sensitivity', 'sensitivity'),
+                             ('rh95', 'rh95'),
+                             ('rh98', 'rh98')],
+                     'L2B': [('shot', 'shot_number'),
+                             ('latitude', 'geolocation/lat_lowestmode'),
+                             ('longitude', 'geolocation/lon_lowestmode'),
+                             ('degrade_flag', 'geolocation/degrade_flag'),
+                             ('quality_flag', 'l2b_quality_flag'),
+                             ('sensitivity', 'sensitivity'),
+                             ('tcc', 'cover'),
+                             ('fhd', 'fhd_normal'),
+                             ('pai', 'pai'),
+                             ('rh100', 'rh100')]
+                     }
 
 
 def extract_data(directory, temp_unpack_zip=False, gedi_product='L2B', filter_month=(1, 12), variables=None, beams=None,
@@ -100,19 +100,13 @@ def extract_data(directory, temp_unpack_zip=False, gedi_product='L2B', filter_mo
     
     if subset_vector is not None:
         out_dict = ancil.prepare_roi(vec=subset_vector)
-    
     if beams is None:
         beams = FULL_POWER_BEAMS
-    
-    if variables is None:
-        if gedi_product == 'L2A':
-            variables = VARIABLES_BASIC_L2A
-        else:
-            variables = VARIABLES_BASIC_L2B
-            
     if gedi_product == 'L2A':
+        variables = DEFAULT_VARIABLES['L2A'] if variables is None else variables
         pattern = PATTERN_L2A
     else:
+        variables = DEFAULT_VARIABLES['L2B'] if variables is None else variables
         pattern = PATTERN_L2B
     
     tmp_dirs = None
