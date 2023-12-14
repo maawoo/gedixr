@@ -50,21 +50,30 @@ def extract_data(directory: str | Path,
                  variables: Optional[list[tuple[str, str]]] = None,
                  beams: Optional[list[str, ...]] = None,
                  filter_month: Optional[tuple[int, int]] = None,
-                 subset_vector: Optional[str | Path | list[str | Path, ...]] = None,
+                 subset_vector: Optional[str | Path |
+                                         list[str | Path, ...]] = None,
                  save_gpkg: bool = True,
                  dry_run: bool = False
-                 ) -> GeoDataFrame | dict[str, dict[str, GeoDataFrame | Polygon]]:
+                 ) -> (GeoDataFrame |
+                       dict[str, dict[str, GeoDataFrame | Polygon]]):
     """
-    Extracts data from GEDI L2A or L2B files in HDF5 format using the following steps:
+    Extracts data from GEDI L2A or L2B files in HDF5 format using the following
+    steps:
     
     (1) Search a root directory recursively for GEDI L2A or L2B HDF5 files.
-    (2) OPTIONAL: Filter files by month of acquisition and the respective beams (full power or not).
-    (3) Extract general, quality and analysis related information from each file into a pandas.Dataframe.
+    (2) OPTIONAL: Filter files by month of acquisition and the respective beams
+    (full power or not).
+    (3) Extract general, quality and analysis related information from each file
+    into a pandas.Dataframe.
     (4) Filter out shots of poor quality.
-    (5) Convert Dataframe to GeoDataFrame and add a 'geometry' column containing a shapely.geometry.Point objects.
-    (6) OPTIONAL: Subset shots spatially using intersection via provided vector file or list of vector files.
-    (7) OPTIONAL: Save the results as a GeoPackage file or multiple files (one per provided vector file).
-    (8) Return a GeoDataFrame or dictionary of GeoDataFrame objects (one per provided vector file).
+    (5) Convert Dataframe to GeoDataFrame and add a 'geometry' column containing
+    a shapely.geometry.Point objects.
+    (6) OPTIONAL: Subset shots spatially using intersection via provided vector
+    file or list of vector files.
+    (7) OPTIONAL: Save the results as a GeoPackage file or multiple files (one
+    per provided vector file).
+    (8) Return a GeoDataFrame or dictionary of GeoDataFrame objects (one per
+    provided vector file).
     
     Parameters
     ----------
@@ -73,28 +82,36 @@ def extract_data(directory: str | Path,
     gedi_product: str
         GEDI product type. Either 'L2A' or 'L2B'. Default is 'L2B'.
     temp_unpack_zip: bool, optional
-        Unpack zip archives in temporary directories and use those to extract data from? Default is False.
-        Use this option with caution, as it will create a temporary directory to decompress each zip archive found in
-        the specified directory! The temporary directories will be deleted after the extraction process, but interruptions
-        may cause them to remain on the disk.
+        Unpack zip archives in temporary directories and use those to extract
+        data from? Default is False. Use this option with caution, as it will
+        create a temporary directory to decompress each zip archive found in the
+        specified directory! The temporary directories will be deleted after the
+        extraction process, but interruptions may cause them to remain on the
+        disk.
     variables: list of tuple of str, optional
-        List of tuples containing the desired column name in the returned GeoDataFrame and the respective GEDI layer name.
-        Defaults to `gedixr.gedi.VARIABLES_BASIC_L2A` for L2A products and `gedixr.gedi.VARIABLES_BASIC_L2B` for L2B products.
+        List of tuples containing the desired column name in the returned
+        GeoDataFrame and the respective GEDI layer name. Defaults to
+        `gedixr.gedi.DEFAULT_VARIABLES`.
     beams: list of str, optional
         List of GEDI beams to extract values from. Defaults to full power beams:
         ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
     filter_month: tuple(int), optional
-        Filter GEDI shots by month of the year? E.g. (6, 8) to only keep shots that were acquired between June 1st and
-        August 31st of each year. Defaults to (1, 12), which keeps all shots of each year.
+        Filter GEDI shots by month of the year? E.g. (6, 8) to only keep shots
+        that were acquired between June 1st and August 31st of each year.
+        Defaults to (1, 12), which keeps all shots of each year.
     subset_vector: str or Path or list of str or Path, optional
-        Path or list of paths to vector files in a fiona supported format to subset the GEDI data spatially. Default is
-        None, to keep all shots. Note that the basename of each vector file will be used in the output names, so it is
-        recommended to give those files reasonable names beforehand!
+        Path or list of paths to vector files in a fiona supported format to
+        subset the GEDI data spatially. Default is None, to keep all shots.
+        Note that the basename of each vector file will be used in the output
+        names, so it is recommended to give those files reasonable names
+        beforehand!
     save_gpkg: bool, optional
-        Save resulting GeoDataFrame as a Geopackage file in a subdirectory called `extracted` of the directory specified
-        with `gedi_dir`? Default is True.
+        Save resulting GeoDataFrame as a Geopackage file in a subdirectory
+        called `extracted` of the directory specified with `gedi_dir`?
+        Default is True.
     dry_run: bool, optional
-        If set to True, will only print out how many GEDI files were found. Default is False.
+        If set to True, will only print out how many GEDI files were found.
+        Default is False.
     
     Returns
     -------
@@ -104,11 +121,12 @@ def extract_data(directory: str | Path,
                                    'gdf': GeoDataFrame}}
     """
     if gedi_product not in ALLOWED_PRODUCTS:
-        raise RuntimeError(f"Parameter 'gedi_product': expected to be one of {ALLOWED_PRODUCTS}; "
-                           f"got {gedi_product} instead")
+        raise RuntimeError(f"Parameter 'gedi_product': expected to be one of "
+                           f"{ALLOWED_PRODUCTS}; got {gedi_product} instead")
     
     directory = ancil.to_pathlib(x=directory)
-    subset_vector = ancil.to_pathlib(x=subset_vector) if subset_vector is not None else None
+    subset_vector = ancil.to_pathlib(x=subset_vector) if (
+            subset_vector is not None) else None
     log_handler, now = ancil.set_logging(directory, gedi_product)
     n_err = 0
     
@@ -129,42 +147,54 @@ def extract_data(directory: str | Path,
     try:
         # (1) Search for GEDI files
         if temp_unpack_zip:
-            filepaths, tmp_dirs = _filepaths_from_zips(directory=directory, pattern=pattern)
+            filepaths, tmp_dirs = _filepaths_from_zips(directory=directory,
+                                                       pattern=pattern)
         else:
-            filepaths = [p for p in directory.rglob('*') if p.is_file() and p.match(pattern)]
-    
+            filepaths = [p for p in directory.rglob('*') if p.is_file() and
+                         p.match(pattern)]
+        
         if dry_run:
-            print(f"{len(filepaths)} GEDI {gedi_product} files were found to extract data from. "
-                  f"Rerun without activated 'dry_run'-flag to extract data.")
+            print(f"{len(filepaths)} GEDI {gedi_product} files were found to "
+                  f"extract data from. Rerun without activated 'dry_run'-flag "
+                  f"to extract data.")
             _cleanup_tmp_dirs(tmp_dirs)
             ancil.close_logging(log_handler=log_handler)
             return None
         if len(filepaths) == 0:
             _cleanup_tmp_dirs(tmp_dirs)
-            raise RuntimeError(f"No GEDI {gedi_product} files were found in {directory}.")
+            raise RuntimeError(f"No GEDI {gedi_product} files were found in "
+                               f"{directory}.")
         
         gdf_list_no_spatial_subset = []
         for i, fp in enumerate(tqdm(filepaths)):
-            
             # (2) Filter by month of acquisition and beam type
             date = ancil.date_from_gedi_file(gedi_path=fp)
             if not filter_month[0] <= date.month <= filter_month[1]:
-                msg = f'Time of acquisition outside of filter range: month_min={filter_month[0]}, ' \
-                      f'month_max={filter_month[1]}'
-                ancil.log(handler=log_handler, mode='info', file=fp.name, msg=msg)
+                msg = (f"Time of acquisition outside of filter range: "
+                       f"month_min={filter_month[0]}, "
+                       f"month_max={filter_month[1]}")
+                ancil.log(handler=log_handler, mode='info', file=fp.name,
+                          msg=msg)
                 continue
             
             try:
                 gedi = h5py.File(fp, 'r')
                 
                 # (3) Extract data and convert to Dataframe
-                df = pd.DataFrame(_from_file(gedi_file=gedi, beams=beams, variables=variables, acq_time=date))
+                df = pd.DataFrame(_from_file(gedi_file=gedi,
+                                             beams=beams,
+                                             variables=variables,
+                                             acq_time=date))
                 
                 # (4) Filter by quality flags
-                df = filter_quality(df=df, log_handler=log_handler, gedi_path=fp)
+                df = filter_quality(df=df,
+                                    log_handler=log_handler,
+                                    gedi_path=fp)
                 
                 # (5) Convert to GeoDataFrame and set 'Shot Number' as index
-                df['geometry'] = df.apply(lambda row: Point(row.longitude, row.latitude), axis=1)
+                df['geometry'] = df.apply(lambda row:
+                                          Point(row.longitude, row.latitude),
+                                          axis=1)
                 df = df.drop(columns=['latitude', 'longitude'])
                 gdf = gp.GeoDataFrame(df)
                 gdf.crs = 'EPSG:4326'
@@ -177,7 +207,9 @@ def extract_data(directory: str | Path,
                             if out_dict[k]['gdf'] is None:
                                 out_dict[k]['gdf'] = gdf_sub
                             else:
-                                out_dict[k]['gdf'] = pd.concat([out_dict[k]['gdf'], gdf_sub])
+                                gdf_cat = pd.concat([out_dict[k]['gdf'],
+                                                     gdf_sub])
+                                out_dict[k]['gdf'] = gdf_cat
                         del gdf_sub
                 else:
                     gdf_list_no_spatial_subset.append(gdf)
@@ -186,7 +218,8 @@ def extract_data(directory: str | Path,
                 del df, gdf
             
             except Exception as msg:
-                ancil.log(handler=log_handler, mode='exception', file=fp.name, msg=str(msg))
+                ancil.log(handler=log_handler, mode='exception', file=fp.name,
+                          msg=str(msg))
                 n_err += 1
         
         # (7) & (8)
@@ -196,7 +229,8 @@ def extract_data(directory: str | Path,
             if save_gpkg:
                 for vec_base, _dict in out_dict.items():
                     if _dict['gdf'] is not None:
-                        out_gpkg = out_dir / (now + f'__{gedi_product}_' + '_subset_' + vec_base + '.gpkg')
+                        out_gpkg = out_dir / (now + f'__{gedi_product}_' +
+                                              '_subset_' + vec_base + '.gpkg')
                         _dict['gdf'].to_file(out_gpkg, driver='GPKG')
             return out_dict
         else:
@@ -212,7 +246,8 @@ def extract_data(directory: str | Path,
         _cleanup_tmp_dirs(tmp_dirs)
         ancil.close_logging(log_handler=log_handler)
         if n_err > 0:
-            print(f"WARNING: {n_err} errors occurred during the extraction process. Please check the log file!")
+            print(f"WARNING: {n_err} errors occurred during the extraction "
+                  f"process. Please check the log file!")
 
 
 def _cleanup_tmp_dirs(tmp_dirs: list[TemporaryDirectory]) -> None:
@@ -235,7 +270,8 @@ def _filepaths_from_zips(directory: Path,
         tmp_dir_path = Path(tmp_dir.name)
         with zipfile.ZipFile(zf, 'r') as zip_ref:
             zip_ref.extractall(tmp_dir_path)
-        match = [p for p in tmp_dir_path.rglob('*') if p.is_file() and p.match(pattern)]
+        match = [p for p in tmp_dir_path.rglob('*') if p.is_file() and
+                 p.match(pattern)]
         filepaths.extend(match)
     return filepaths, tmp_dirs
 
@@ -270,7 +306,8 @@ def _from_file(gedi_file: File,
     for beam in beams:
         for k, v in variables:
             if v.startswith('rh') and v != 'rh100':
-                out[k] = [round(h[int(v[2:])] * 100) for h in gedi_file[f'{beam}/rh'][()]]
+                out[k] = [round(h[int(v[2:])] * 100) for h in
+                          gedi_file[f'{beam}/rh'][()]]
             elif v == 'shot_number':
                 out[k] = [str(h) for h in gedi_file[f'{beam}/{v}'][()]]
             else:
@@ -285,8 +322,9 @@ def filter_quality(df: DataFrame,
                    gedi_path: Path
                    ) -> DataFrame:
     """
-    Filters a given pandas.Dataframe containing GEDI data using its quality flags. The values used here have been
-    adopted from the official GEDI L2A/L2B tutorials:
+    Filters a given pandas.Dataframe containing GEDI data using its quality
+    flags. The values used here have been adopted from the official GEDI L2A/L2B
+    tutorials:
     https://git.earthdata.nasa.gov/projects/LPDUR/repos/gedi-v2-tutorials/browse
     
     Parameters
