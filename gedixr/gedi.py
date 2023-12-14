@@ -8,6 +8,10 @@ import pandas as pd
 import geopandas as gp
 from shapely.geometry import Point
 
+from typing import Optional
+from geopandas import GeoDataFrame
+from shapely import Polygon
+
 import gedixr.ancillary as ancil
 
 ALLOWED_PRODUCTS = ['L2A', 'L2B']
@@ -37,8 +41,16 @@ DEFAULT_VARIABLES = {'L2A': [('shot', 'shot_number'),
                      }
 
 
-def extract_data(directory, temp_unpack_zip=False, gedi_product='L2B', filter_month=(1, 12), variables=None, beams=None,
-                 subset_vector=None, save_gpkg=True, dry_run=False):
+def extract_data(directory: str | Path,
+                 gedi_product: str,
+                 temp_unpack_zip: bool = False,
+                 variables: Optional[list[tuple[str, str]]] = None,
+                 beams: Optional[list[str, ...]] = None,
+                 filter_month: Optional[tuple[int, int]] = None,
+                 subset_vector: Optional[str | Path | list[str | Path, ...]] = None,
+                 save_gpkg: bool = True,
+                 dry_run: bool = False
+                 ) -> GeoDataFrame | dict[str, dict[str, GeoDataFrame | Polygon]]:
     """
     Extracts data from GEDI L2A or L2B files in HDF5 format using the following steps:
     
@@ -55,26 +67,26 @@ def extract_data(directory, temp_unpack_zip=False, gedi_product='L2B', filter_mo
     ----------
     directory: str or Path
         Root directory to recursively search for GEDI L2A/L2B files.
+    gedi_product: str
+        GEDI product type. Either 'L2A' or 'L2B'. Default is 'L2B'.
     temp_unpack_zip: bool, optional
         Unpack zip archives in temporary directories and use those to extract data from? Default is False.
         Use this option with caution, as it will create a temporary directory to decompress each zip archive found in
         the specified directory! The temporary directories will be deleted after the extraction process, but interruptions
         may cause them to remain on the disk.
-    gedi_product: str, optional
-        GEDI product type. Either 'L2A' or 'L2B'. Default is 'L2B'.
+    variables: list of tuple of str, optional
+        List of tuples containing the desired column name in the returned GeoDataFrame and the respective GEDI layer name.
+        Defaults to `gedixr.gedi.VARIABLES_BASIC_L2A` for L2A products and `gedixr.gedi.VARIABLES_BASIC_L2B` for L2B products.
+    beams: list of str, optional
+        List of GEDI beams to extract values from. Defaults to full power beams:
+        ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
     filter_month: tuple(int), optional
         Filter GEDI shots by month of the year? E.g. (6, 8) to only keep shots that were acquired between June 1st and
         August 31st of each year. Defaults to (1, 12), which keeps all shots of each year.
-    subset_vector: str|Path or list(str|Path), optional
+    subset_vector: str or Path or list of str or Path, optional
         Path or list of paths to vector files in a fiona supported format to subset the GEDI data spatially. Default is
         None, to keep all shots. Note that the basename of each vector file will be used in the output names, so it is
         recommended to give those files reasonable names beforehand!
-    variables: list(tuple(str)), optional
-        List of tuples containing the desired column name in the returned GeoDataFrame and the respective GEDI layer name.
-        Defaults to `gedixr.gedi.VARIABLES_BASIC_L2A` for L2A products and `gedixr.gedi.VARIABLES_BASIC_L2B` for L2B products.
-    beams: list(str), optional
-        List of GEDI beams to extract values from. Defaults to full power beams:
-        ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
     save_gpkg: bool, optional
         Save resulting GeoDataFrame as a Geopackage file in a subdirectory called `extracted` of the directory specified
         with `gedi_dir`? Default is True.
@@ -83,11 +95,10 @@ def extract_data(directory, temp_unpack_zip=False, gedi_product='L2B', filter_mo
     
     Returns
     -------
-    geopandas.geodataframe.GeoDataFrame or dictionary of geopandas.geodataframe.GeoDataFrame
+    GeoDataFrame or dictionary
         The key-value pairs in case of an output dictionary:
-            {'<Vector Basename>': {'geo': shapely.geometry.polygon.Polygon,
-                                   'gdf': geopandas.geodataframe.GeoDataFrame}
-            }
+            {'<Vector Basename>': {'geo': Polygon,
+                                   'gdf': GeoDataFrame}}
     """
     if gedi_product not in ALLOWED_PRODUCTS:
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of {ALLOWED_PRODUCTS}; "
@@ -98,16 +109,18 @@ def extract_data(directory, temp_unpack_zip=False, gedi_product='L2B', filter_mo
     log_handler, now = ancil.set_logging(directory, gedi_product)
     n_err = 0
     
-    if subset_vector is not None:
-        out_dict = ancil.prepare_roi(vec=subset_vector)
-    if beams is None:
-        beams = FULL_POWER_BEAMS
     if gedi_product == 'L2A':
         variables = DEFAULT_VARIABLES['L2A'] if variables is None else variables
         pattern = PATTERN_L2A
     else:
         variables = DEFAULT_VARIABLES['L2B'] if variables is None else variables
         pattern = PATTERN_L2B
+    if beams is None:
+        beams = FULL_POWER_BEAMS
+    if filter_month is None:
+        filter_month = (1, 12)
+    if subset_vector is not None:
+        out_dict = ancil.prepare_roi(vec=subset_vector)
     
     tmp_dirs = None
     try:
