@@ -1,5 +1,4 @@
 from pathlib import Path
-import tempfile
 import zipfile
 import logging
 from tqdm import tqdm
@@ -9,6 +8,10 @@ import geopandas as gp
 from shapely.geometry import Point
 
 from typing import Optional
+from tempfile import TemporaryDirectory
+from logging import Logger
+from h5py import File
+from pandas import DataFrame
 from geopandas import GeoDataFrame
 from shapely import Polygon
 
@@ -212,17 +215,20 @@ def extract_data(directory: str | Path,
             print(f"WARNING: {n_err} errors occurred during the extraction process. Please check the log file!")
 
 
-def _cleanup_tmp_dirs(tmp_dirs):
+def _cleanup_tmp_dirs(tmp_dirs: list[TemporaryDirectory]) -> None:
     """Cleanup temporary directories created during the extraction process."""
     if tmp_dirs is not None:
         for tmp_dir in tmp_dirs:
             tmp_dir.cleanup()
 
 
-def _filepaths_from_zips(directory, pattern):
-    """Decompress zip archives in temporary directories and return filepaths matching the given pattern."""
-    zip_files = [p for p in directory.rglob('*') if p.is_file() and p.match('*.zip')]
-    tmp_dirs = [tempfile.TemporaryDirectory() for _ in zip_files]
+def _filepaths_from_zips(directory: Path,
+                         pattern: str
+                         ) -> (list[Path], list[TemporaryDirectory]):
+    """Decompress zips to temp directories and find matching filepaths."""
+    zip_files = [p for p in directory.rglob('*') if p.is_file() and
+                 p.match('*.zip')]
+    tmp_dirs = [TemporaryDirectory() for _ in zip_files]
     
     filepaths = []
     for zf, tmp_dir in zip(zip_files, tmp_dirs):
@@ -234,21 +240,26 @@ def _filepaths_from_zips(directory, pattern):
     return filepaths, tmp_dirs
 
 
-def _from_file(gedi_file, beams, variables, acq_time='Acquisition Time'):
+def _from_file(gedi_file: File,
+               beams: list[str],
+               variables: list[tuple[str, str]],
+               acq_time: str = 'Acquisition Time'
+               ) -> dict:
     """
     Extracts values from a GEDI HDF5 file.
     
     Parameters
     ----------
-    gedi_file: h5py._hl.files.File
+    gedi_file: File
         A loaded GEDI HDF5 file.
-    beams: list(str)
+    beams: list of str
         List of GEDI beams to extract values from.
-    variables: list(tuple(str)), optional
-        List of tuples containing the desired column name in the returned GeoDataFrame and the respective GEDI layer name.
-        Defaults to `gedixr.gedi.VARIABLES_BASIC_L2A` for L2A products and `gedixr.gedi.VARIABLES_BASIC_L2B` for L2B products.
-    acq_time: str
-        Name of the GEDI layer containing the acquisition time.
+    variables: list of tuple of str
+        List of tuples containing the desired column name in the returned
+        GeoDataFrame and the respective GEDI layer name.
+    acq_time: str, optional
+        Name of the GEDI layer containing the acquisition time. Default is
+        'Acquisition Time'.
     
     Returns
     -------
@@ -269,7 +280,10 @@ def _from_file(gedi_file, beams, variables, acq_time='Acquisition Time'):
     return out
 
 
-def filter_quality(df, log_handler, gedi_path):
+def filter_quality(df: DataFrame,
+                   log_handler: Logger,
+                   gedi_path: Path
+                   ) -> DataFrame:
     """
     Filters a given pandas.Dataframe containing GEDI data using its quality flags. The values used here have been
     adopted from the official GEDI L2A/L2B tutorials:
@@ -277,16 +291,16 @@ def filter_quality(df, log_handler, gedi_path):
     
     Parameters
     ----------
-    df: :obj:`pandas.Dataframe`
+    df: Dataframe
         Dataframe containing data of the GEDI L2A/L2B file.
-    log_handler: logging.Logger
+    log_handler: Logger
         Current log handler.
     gedi_path: Path
         Path to the current GEDI L2A/L2B file.
     
     Returns
     -------
-    df: pandas.Dataframe
+    df: Dataframe
         The quality-filtered dataframe.
     """
     len_before = len(df)
