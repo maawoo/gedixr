@@ -1,12 +1,10 @@
 from pathlib import Path
-import warnings
 import logging
 from tqdm import tqdm
 import h5py
 import pandas as pd
 import geopandas as gp
 from shapely.geometry import Point
-from shapely.errors import ShapelyDeprecationWarning
 
 import gedixr.ancillary as ancil
 
@@ -92,9 +90,6 @@ def extract_data(directory, gedi_product='L2B', filter_month=(1, 12), variables=
     n_err = 0
     
     if subset_vector is not None:
-        # https://gis.stackexchange.com/a/433423
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)
         out_dict = ancil.prepare_roi(vec=subset_vector)
     
     if beams is None:
