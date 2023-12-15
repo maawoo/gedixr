@@ -1,6 +1,5 @@
 from pathlib import Path
 import zipfile
-import logging
 from tqdm import tqdm
 import h5py
 import pandas as pd
@@ -15,7 +14,7 @@ from pandas import DataFrame
 from geopandas import GeoDataFrame
 from shapely import Polygon
 
-import gedixr.ancillary as ancil
+import gedixr.ancillary as anc
 
 ALLOWED_PRODUCTS = ['L2A', 'L2B']
 PATTERN_L2A = '*GEDI02_A_*.h5'
@@ -124,10 +123,10 @@ def extract_data(directory: str | Path,
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of "
                            f"{ALLOWED_PRODUCTS}; got {gedi_product} instead")
     
-    directory = ancil.to_pathlib(x=directory)
-    subset_vector = ancil.to_pathlib(x=subset_vector) if (
+    directory = anc.to_pathlib(x=directory)
+    subset_vector = anc.to_pathlib(x=subset_vector) if (
             subset_vector is not None) else None
-    log_handler, now = ancil.set_logging(directory, gedi_product)
+    log_handler, now = anc.set_logging(directory, gedi_product)
     n_err = 0
     
     if gedi_product == 'L2A':
@@ -141,7 +140,7 @@ def extract_data(directory: str | Path,
     if filter_month is None:
         filter_month = (1, 12)
     if subset_vector is not None:
-        out_dict = ancil.prepare_roi(vec=subset_vector)
+        out_dict = anc.prepare_roi(vec=subset_vector)
     
     tmp_dirs = None
     try:
@@ -158,7 +157,7 @@ def extract_data(directory: str | Path,
                   f"extract data from. Rerun without activated 'dry_run'-flag "
                   f"to extract data.")
             _cleanup_tmp_dirs(tmp_dirs)
-            ancil.close_logging(log_handler=log_handler)
+            anc.close_logging(log_handler=log_handler)
             return None
         if len(filepaths) == 0:
             _cleanup_tmp_dirs(tmp_dirs)
@@ -168,13 +167,12 @@ def extract_data(directory: str | Path,
         gdf_list_no_spatial_subset = []
         for i, fp in enumerate(tqdm(filepaths)):
             # (2) Filter by month of acquisition and beam type
-            date = ancil.date_from_gedi_file(gedi_path=fp)
+            date = anc.date_from_gedi_file(gedi_path=fp)
             if not filter_month[0] <= date.month <= filter_month[1]:
                 msg = (f"Time of acquisition outside of filter range: "
                        f"month_min={filter_month[0]}, "
                        f"month_max={filter_month[1]}")
-                ancil.log(handler=log_handler, mode='info', file=fp.name,
-                          msg=msg)
+                anc.log(handler=log_handler, mode='info', file=fp.name, msg=msg)
                 continue
             
             try:
@@ -218,8 +216,8 @@ def extract_data(directory: str | Path,
                 del df, gdf
             
             except Exception as msg:
-                ancil.log(handler=log_handler, mode='exception', file=fp.name,
-                          msg=str(msg))
+                anc.log(handler=log_handler, mode='exception', file=fp.name,
+                        msg=str(msg))
                 n_err += 1
         
         # (7) & (8)
@@ -240,11 +238,11 @@ def extract_data(directory: str | Path,
                 out.to_file(out_gpkg, driver='GPKG')
             return out
     except Exception as msg:
-        ancil.log(handler=log_handler, mode='exception', msg=str(msg))
+        anc.log(handler=log_handler, mode='exception', msg=str(msg))
         n_err += 1
     finally:
         _cleanup_tmp_dirs(tmp_dirs)
-        ancil.close_logging(log_handler=log_handler)
+        anc.close_logging(log_handler=log_handler)
         if n_err > 0:
             print(f"WARNING: {n_err} errors occurred during the extraction "
                   f"process. Please check the log file!")
@@ -351,5 +349,5 @@ def filter_quality(df: DataFrame,
     filt_perc = round((len_after / len_before) * 100, 2)
     msg = f"{str(len_after).zfill(5)}/{str(len_before).zfill(5)} " \
           f"({filt_perc}%) shots were filtered due to poor quality"
-    ancil.log(handler=log_handler, mode='info', file=gedi_path.name, msg=msg)
+    anc.log(handler=log_handler, mode='info', file=gedi_path.name, msg=msg)
     return df
