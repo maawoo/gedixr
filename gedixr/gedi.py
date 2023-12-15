@@ -340,10 +340,10 @@ def filter_quality(df: DataFrame,
         The quality-filtered dataframe.
     """
     len_before = len(df)
-    df = df.where(df['quality_flag'].ne(0))
-    df = df.where(df['degrade_flag'] < 1)
-    df = df.where(df['sensitivity'] > 0.95)
-    df = df.dropna()
+    cond = (df['quality_flag'].ne(0) &
+            df['degrade_flag'] < 1 &
+            df['sensitivity'] > 0.95)
+    df = df.where(cond).dropna()
     df = df.drop(columns=['quality_flag', 'degrade_flag', 'sensitivity'])
     len_after = len_before - len(df)
     filt_perc = round((len_after / len_before) * 100, 2)
