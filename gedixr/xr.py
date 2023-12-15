@@ -74,7 +74,7 @@ def merge_gdf(gdf_l2a: GeoDataFrame,
 
 
 def gdf_to_xr(gdf: GeoDataFrame,
-              gedi_vars: Optional[list[str]] = None,
+              measurements: Optional[list[str]] = None,
               resolution: Optional[tuple[float, float]] = None
               ) -> Dataset:
     """
@@ -84,9 +84,9 @@ def gdf_to_xr(gdf: GeoDataFrame,
     ----------
     gdf: GeoDataFrame
         GeoDataFrame containing GEDI L2A/L2B data.
-    gedi_vars: list of str, optional
-        List of attribute names (i.e. GEDI variables) to be included.
-        Default is None, which will include all variables.
+    measurements: list of str, optional
+        List of measurements names (i.e. GEDI variables) to be included.
+        Default is None, which will include all measurements.
     resolution: tuple of float, optional
         A tuple of the pixel spacing of the returned data (Y, X). This includes
         the direction (as indicated by a positive or negative number). Default
@@ -100,7 +100,7 @@ def gdf_to_xr(gdf: GeoDataFrame,
     if resolution is None:
         resolution = (-0.0003, 0.0003)
     xr_ds = make_geocube(vector_data=gdf,
-                         measurements=gedi_vars,
+                         measurements=measurements,
                          output_crs=f'epsg:{gdf.crs.to_epsg()}',
                          resolution=resolution)
     return xr_ds
