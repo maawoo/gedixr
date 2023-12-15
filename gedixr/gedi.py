@@ -48,11 +48,11 @@ def extract_data(directory: str | Path,
                  gedi_product: str,
                  temp_unpack_zip: bool = False,
                  variables: Optional[list[tuple[str, str]]] = None,
-                 beams: Optional[list[str, ...]] = None,
+                 beams: Optional[list[str]] = None,
                  filter_month: Optional[tuple[int, int]] = None,
                  subset_vector: Optional[str | Path |
-                                         list[str | Path, ...]] = None,
-                 save_gpkg: bool = True,
+                                         list[str | Path]] = None,
+                 save: bool = True,
                  dry_run: bool = False
                  ) -> (GeoDataFrame |
                        dict[str, dict[str, GeoDataFrame | Polygon]]):
@@ -70,7 +70,7 @@ def extract_data(directory: str | Path,
     a shapely.geometry.Point objects.
     (6) OPTIONAL: Subset shots spatially using intersection via provided vector
     file or list of vector files.
-    (7) OPTIONAL: Save the results as a GeoPackage file or multiple files (one
+    (7) OPTIONAL: Save the results as a GeoParquet file or multiple files (one
     per provided vector file).
     (8) Return a GeoDataFrame or dictionary of GeoDataFrame objects (one per
     provided vector file).
@@ -105,10 +105,9 @@ def extract_data(directory: str | Path,
         Note that the basename of each vector file will be used in the output
         names, so it is recommended to give those files reasonable names
         beforehand!
-    save_gpkg: bool, optional
-        Save resulting GeoDataFrame as a Geopackage file in a subdirectory
-        called `extracted` of the directory specified with `gedi_dir`?
-        Default is True.
+    save: bool, optional
+        Save resulting GeoDataFrame in a subdirectory called `extracted` of the 
+        directory specified with `gedi_dir`? Default is True.
     dry_run: bool, optional
         If set to True, will only print out how many GEDI files were found.
         Default is False.
@@ -225,18 +224,19 @@ def extract_data(directory: str | Path,
         out_dir = directory / 'extracted'
         out_dir.mkdir(exist_ok=True)
         if subset_vector is not None:
-            if save_gpkg:
+            if save:
                 for vec_base, _dict in out_dict.items():
                     if _dict['gdf'] is not None:
-                        out_gpkg = out_dir / (now + f'__{gedi_product}_' +
-                                              '_subset_' + vec_base + '.gpkg')
-                        _dict['gdf'].to_file(out_gpkg, driver='GPKG')
+                        out_path = out_dir / (now + f'__{gedi_product}_' +
+                                              '_subset_' + vec_base +
+                                              '.parquet')
+                        _dict['gdf'].to_parquet(out_path)
             return out_dict
         else:
             out = pd.concat(gdf_list_no_spatial_subset)
-            if save_gpkg:
-                out_gpkg = out_dir / (now + f'__{gedi_product}' + '.gpkg')
-                out.to_file(out_gpkg, driver='GPKG')
+            if save:
+                out_path = out_dir / (now + f'__{gedi_product}' + '.parquet')
+                out.to_parquet(out_path)
             return out
     except Exception as msg:
         anc.log(handler=log_handler, mode='exception', msg=str(msg))
