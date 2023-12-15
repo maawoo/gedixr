@@ -8,6 +8,7 @@ from shapely.geometry import Point
 
 from typing import Optional
 from tempfile import TemporaryDirectory
+from datetime import datetime
 from logging import Logger
 from h5py import File
 from pandas import DataFrame
@@ -277,7 +278,7 @@ def _filepaths_from_zips(directory: Path,
 def _from_file(gedi_file: File,
                beams: list[str],
                variables: list[tuple[str, str]],
-               acq_time: str = 'Acquisition Time'
+               acq_time: datetime
                ) -> dict:
     """
     Extracts values from a GEDI HDF5 file.
@@ -291,9 +292,8 @@ def _from_file(gedi_file: File,
     variables: list of tuple of str
         List of tuples containing the desired column name in the returned
         GeoDataFrame and the respective GEDI layer name.
-    acq_time: str, optional
-        Name of the GEDI layer containing the acquisition time. Default is
-        'Acquisition Time'.
+    acq_time: datetime
+        Acquisition time of the GEDI file.
     
     Returns
     -------
@@ -310,7 +310,6 @@ def _from_file(gedi_file: File,
                 out[k] = [str(h) for h in gedi_file[f'{beam}/{v}'][()]]
             else:
                 out[k] = gedi_file[f'{beam}/{v}'][()]
-    
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
 
