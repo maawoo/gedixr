@@ -340,9 +340,9 @@ def filter_quality(df: DataFrame,
         The quality-filtered dataframe.
     """
     len_before = len(df)
-    cond = (df['quality_flag'].ne(0) &
-            df['degrade_flag'] < 1 &
-            df['sensitivity'] > 0.95)
+    cond = ((df['quality_flag'].ne(0)) &
+            (df['degrade_flag'] < 1) &
+            (df['sensitivity'] > 0.95))
     df = df.where(cond).dropna()
     df = df.drop(columns=['quality_flag', 'degrade_flag', 'sensitivity'])
     len_after = len_before - len(df)
