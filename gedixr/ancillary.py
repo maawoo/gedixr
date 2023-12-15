@@ -4,15 +4,21 @@ import logging
 from datetime import datetime
 import geopandas as gp
 
+from typing import Optional
+from shapely import Polygon
 
-def set_logging(directory, gedi_product):
+
+def set_logging(directory: Path,
+                gedi_product: str
+                ) -> (logging.Logger, str):
     """
     Set logging for the current process.
     
     Parameters
     ----------
     directory: Path
-        Directory in which to store logfiles. Will create a subdirectory called '<directory>/log'.
+        Directory in which to store logfiles. Will create a subdirectory called
+        '<directory>/log'.
     gedi_product: str
         One of ['L2A', 'L2B']. Used to name the log file.
     
@@ -37,7 +43,11 @@ def set_logging(directory, gedi_product):
     return log_local, now
 
 
-def log(handler, mode, msg, file=None):
+def log(handler: logging.Logger,
+        mode: str,
+        msg: str,
+        file: Optional[str] = None
+        ) -> None:
     """
     Format and handle log messages during processing.
     
@@ -46,8 +56,9 @@ def log(handler, mode, msg, file=None):
     handler: logging.Logger
         Log handler initiated with the function `set_logging`.
     mode: str
-        One of ['info', 'warning', 'error', 'exception']. Calls the respective logging helper function.
-        E.g. `logging.info()`; https://docs.python.org/3/library/logging.html#logging.info
+        One of ['info', 'warning', 'error', 'exception']. Calls the respective
+        logging helper function. E.g. `logging.info()`:
+        https://docs.python.org/3/library/logging.html#logging.info
     msg: str or Exception
         The massage that should be logged.
     file: str, optional
@@ -75,16 +86,16 @@ def log(handler, mode, msg, file=None):
         raise RuntimeError('log mode {} is not supported'.format(mode))
 
 
-def close_logging(log_handler):
+def close_logging(log_handler: logging.Logger) -> None:
     """
-    Close logging for the current process. This is necessary to avoid appending to the previous log file when
-    executing the same process repeatedly.
+    Close logging for the current process. This is necessary to avoid appending
+    to the previous log file when executing the same process repeatedly.
     
     Parameters
     ----------
     log_handler: logging.Logger
         Log handler initiated with the function `set_logging`.
-
+    
     Returns
     -------
     None
@@ -95,22 +106,24 @@ def close_logging(log_handler):
             log_handler.removeHandler(handler)
 
 
-def prepare_roi(vec):
+def prepare_roi(vec: Path | list[Path]
+                ) -> dict[str, dict[str, Polygon | None]]:
     """
-    Prepares a vector file or list of vector files for spatial subsetting by extracting the geometry of each vector file
-    and storing it in a dictionary.
-
+    Prepares a vector file or list of vector files for spatial subsetting by
+    extracting the geometry of each vector file and storing it in a dictionary.
+    
     Parameters
     ----------
-    vec: Path or list(Path)
-        Path or list of paths to vector files in a fiona supported format. If a multi-feature polygon is detected,
-        the first feature will be used for subsetting.
-
+    vec: Path or list of Path
+        Path or list of paths to vector files in a fiona supported format. If a
+        multi-feature polygon is detected, the first feature will be used for
+        subsetting.
+    
     Returns
     -------
     out: dict
         Dictionary with key-value pairs:
-        {'<Vector Basename>': {'geo': shapely.geometry.polygon.Polygon,
+        {'<Vector Basename>': {'geo': Polygon,
                                'gdf': None}}
     """
     if not isinstance(vec, list):
@@ -118,30 +131,32 @@ def prepare_roi(vec):
     
     out = {}
     for v in vec:
-        roi = gp.GeoDataFrame.from_file(v)
+        roi = gp.GeoDataFrame.from_file(str(v))
         if not roi.crs == 'EPSG:4326':
             roi = roi.to_crs('EPSG:4326')
         if len(roi) > 1:
-            print('WARNING: Multi-feature polygon detected. Only the first feature will be used to subset the GEDI '
-                  'data!')
+            print("WARNING: Multi-feature polygon detected. Only the first "
+                  "feature will be used to subset the GEDI data!")
         v_basename = Path(v).name.split('.')[0]
         out[v_basename] = {'geo': roi.geometry[0], 'gdf': None}
     
     return out
 
 
-def date_from_gedi_file(gedi_path):
+def date_from_gedi_file(gedi_path: Path) -> datetime:
     """
-    Extracts the date from a GEDI L2A/L2B HDF5 file and converts it to a datetime.datetime object.
-
+    Extracts the date from a GEDI L2A/L2B HDF5 file and converts it to a
+    datetime object.
+    
     Parameters
     ----------
     gedi_path: Path
         Path to a GEDI L2A/L2B HDF5 file.
-
+    
     Returns
     -------
-    date: datetime.datetime
+    date: datetime
+        Date of acquisition of the GEDI L2A/L2B file.
     """
     date_str = re.search('[AB]_[0-9]{13}', gedi_path.name).group()
     date_str = date_str[2:]
@@ -149,20 +164,21 @@ def date_from_gedi_file(gedi_path):
     return date
 
 
-def to_pathlib(x):
+def to_pathlib(x: str | list[str]) -> Path | list[Path]:
     """
-    Convert a string or list of strings to a pathlib.Path or list of pathlib.Path objects.
+    Convert string(s) to Path object(s).
     
     Parameters
     ----------
-    x: str or list(str)
-        String or list of strings to be converted to pathlib.Path objects.
-
+    x: str or list of str
+        String or list of strings to be converted to Path objects.
+    
     Returns
     -------
-    pathlib.Path or list(pathlib.Path)
+    Path or list of Path
     """
-    if isinstance(x, Path) or isinstance(x, list) and all([isinstance(i, Path) for i in x]):
+    if (isinstance(x, Path) or isinstance(x, list) and
+            all([isinstance(i, Path) for i in x])):
         return x
     elif isinstance(x, str):
         return Path(x)
