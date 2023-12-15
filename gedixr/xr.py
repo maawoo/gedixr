@@ -8,38 +8,50 @@ from geopandas import GeoDataFrame
 from xarray import Dataset
 
 
-def gpkg_to_gdf(gpkg_l2a: Optional[str | Path] = None,
-                gpkg_l2b: Optional[str | Path] = None
+def load_to_gdf(l2a: Optional[str | Path] = None,
+                l2b: Optional[str | Path] = None
                 ) -> GeoDataFrame:
     """
-    Loads GEDI L2A and/or L2B Geopackage files as GeoDataFrames. If both are
-    provided, they will be merged into a single GeoDataFrame.
+    Loads GEDI L2A and/or L2B GeoParquet or GeoPackage files as GeoDataFrames. 
+    If both are provided, they will be merged into a single GeoDataFrame.
     
     Parameters
     ----------
-    gpkg_l2a: str or Path, optional
-        Path to a GEDI L2A Geopackage file.
-    gpkg_l2b: str or Path, optional
-        Path to a GEDI L2B Geopackage file.
+    l2a: str or Path, optional
+        Path to a GEDI L2A GeoParquet or GeoPackage file.
+    l2b: str or Path, optional
+        Path to a GEDI L2B GeoParquet or GeoPackage file.
     
     Returns
     -------
     final_gdf: GeoDataFrame
         GeoDataFrame containing the data from the provided GEDI L2A and/or L2B
-        Geopackage files.
-    """
-    if all(x is None for x in [gpkg_l2a, gpkg_l2b]):
-        raise RuntimeError("At least one of the parameters 'gpkg_l2a' or "
-                           "'gpkg_l2b' must be provided!")
-    elif all(x is not None for x in [gpkg_l2a, gpkg_l2b]):
-        gdf_l2a = gp.read_file(gpkg_l2a)
-        gdf_l2b = gp.read_file(gpkg_l2b)
+        files.
+    """    
+    if all(x is None for x in [l2a, l2b]):
+        raise RuntimeError("At least one of the parameters 'l2a' or "
+                           "'l2b' must be provided!")
+    elif all(x is not None for x in [l2a, l2b]):
+        gdf_l2a = _reader(l2a)
+        gdf_l2b = _reader(l2b)
         final_gdf = merge_gdf(gdf_l2a=gdf_l2a, gdf_l2b=gdf_l2b)
     else:
-        gpkg = gpkg_l2a if gpkg_l2a is not None else gpkg_l2b
-        final_gdf = gp.read_file(gpkg)
+        fp = l2a if l2a is not None else l2b
+        final_gdf = _reader(fp)
         final_gdf['acq_time'] = pd.to_datetime(final_gdf['acq_time'])
     return final_gdf
+
+
+def _reader(fp: str | Path) -> GeoDataFrame:
+    """Reads a GeoParquet or GeoPackage file as a GeoDataFrame."""
+    if isinstance(fp, str):
+        fp = Path(fp)
+    gdf = None
+    if fp.suffix == '.gpkg':
+        gdf = gp.read_file(fp)
+    elif fp.suffix == '.parquet':
+        gdf = gp.read_parquet(fp)
+    return gdf
 
 
 def merge_gdf(gdf_l2a: GeoDataFrame,

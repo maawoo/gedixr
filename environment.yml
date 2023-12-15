@@ -3,7 +3,8 @@ channels:
   - conda-forge
 dependencies:
   - python>=3.10
-  - geopandas>=0.13
+  - geopandas>=0.14
   - h5netcdf
   - tqdm
   - geocube
+  - pyarrow
