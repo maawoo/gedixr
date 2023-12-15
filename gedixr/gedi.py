@@ -18,8 +18,8 @@ from shapely import Polygon
 import gedixr.ancillary as ancil
 
 ALLOWED_PRODUCTS = ['L2A', 'L2B']
-PATTERN_L2A = '*GEDI02_L2A*.h5'
-PATTERN_L2B = '*GEDI02_L2B*.h5'
+PATTERN_L2A = '*GEDI02_A_*.h5'
+PATTERN_L2B = '*GEDI02_B_*.h5'
 
 FULL_POWER_BEAMS = ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
 
