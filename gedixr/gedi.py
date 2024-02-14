@@ -22,6 +22,7 @@ PATTERN_L2A = '*GEDI02_A_*.h5'
 PATTERN_L2B = '*GEDI02_B_*.h5'
 
 FULL_POWER_BEAMS = ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
+COVERAGE_BEAMS = ['BEAM0000', 'BEAM0001', 'BEAM0010', 'BEAM0011']
 
 DEFAULT_VARIABLES = {'L2A': [('shot', 'shot_number'),
                              ('latitude', 'lat_lowestmode'),
@@ -29,7 +30,6 @@ DEFAULT_VARIABLES = {'L2A': [('shot', 'shot_number'),
                              ('degrade_flag', 'degrade_flag'),
                              ('quality_flag', 'quality_flag'),
                              ('sensitivity', 'sensitivity'),
-                             ('rh95', 'rh95'),
                              ('rh98', 'rh98')],
                      'L2B': [('shot', 'shot_number'),
                              ('latitude', 'geolocation/lat_lowestmode'),
