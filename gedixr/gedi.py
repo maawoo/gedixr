@@ -87,8 +87,8 @@ def extract_data(directory: str | Path,
         GeoDataFrame and the respective GEDI layer name. Defaults to those retrieved
         by `gedixr.gedi.DEFAULT_VARIABLES['<gedi_product>']`.
     beams: list of str, optional
-        List of GEDI beams to extract values from. Defaults to full power beams:
-        ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
+        List of GEDI beams to extract values from. Defaults to all beams (power and
+        coverage beams).
     filter_month: tuple(int), optional
         Filter GEDI shots by month of the year? E.g. (6, 8) to only keep shots
         that were acquired between June 1st and August 31st of each year.
@@ -130,7 +130,7 @@ def extract_data(directory: str | Path,
         variables = DEFAULT_VARIABLES['L2B'] if variables is None else variables
         pattern = PATTERN_L2B
     if beams is None:
-        beams = FULL_POWER_BEAMS
+        beams = FULL_POWER_BEAMS + COVERAGE_BEAMS
     if filter_month is None:
         filter_month = (1, 12)
     if subset_vector is not None:
