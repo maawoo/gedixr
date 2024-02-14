@@ -1,10 +1,10 @@
 [project]
 name = "gedixr"
-version = "0.1.0"
+version = "0.2.0"
 authors = [
   {name="Marco Wolsza", email="marco.wolsza@uni-jena.de" },
 ]
-description = "GEDI L2A/L2B -> Geopackage -> GeoDataFrame/Xarray"
+description = "GEDI L2A/L2B -> Geoparquet & GeoDataFrame/Xarray"
 readme = "README.md"
 license = {text = "MIT License"}
 requires-python = ">=3.10"
