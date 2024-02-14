@@ -294,12 +294,18 @@ def _from_file(gedi_file: File,
     for beam in beams:
         for k, v in variables:
             if v.startswith('rh') and v != 'rh100':
-                out[k] = [round(h[int(v[2:])] * 100) for h in
-                          gedi_file[f'{beam}/rh'][()]]
+                if k not in out:
+                    out[k] = []
+                out[k].extend([round(h[int(v[2:])] * 100) for h in 
+                               gedi_file[f'{beam}/rh'][()]])
             elif v == 'shot_number':
-                out[k] = [str(h) for h in gedi_file[f'{beam}/{v}'][()]]
+                if k not in out:
+                    out[k] = []
+                out[k].extend([str(h) for h in gedi_file[f'{beam}/{v}'][()]])
             else:
-                out[k] = gedi_file[f'{beam}/{v}'][()]
+                if k not in out:
+                    out[k] = []
+                out[k].extend(gedi_file[f'{beam}/{v}'][()])
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
 
