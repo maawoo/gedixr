@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import zipfile
 from tqdm import tqdm
 import h5py
@@ -161,7 +162,7 @@ def extract_data(directory: str | Path,
         gdf_list_no_spatial_subset = []
         for i, fp in enumerate(tqdm(filepaths)):
             # (2) Filter by month of acquisition
-            date = anc.date_from_gedi_file(gedi_path=fp)
+            date = _date_from_gedi_file(gedi_path=fp)
             if not filter_month[0] <= date.month <= filter_month[1]:
                 msg = (f"Time of acquisition outside of filter range: "
                        f"month_min={filter_month[0]}, "
@@ -237,6 +238,13 @@ def extract_data(directory: str | Path,
         if n_err > 0:
             print(f"WARNING: {n_err} errors occurred during the extraction "
                   f"process. Please check the log file!")
+
+
+def _date_from_gedi_file(gedi_path: Path) -> datetime:
+    """Extract date string from GEDI filename and convert to datetime object."""
+    date_str = re.search('[AB]_[0-9]{13}', gedi_path.name).group()
+    date_str = date_str[2:]
+    return datetime.strptime(date_str, '%Y%j%H%M%S')
 
 
 def _cleanup_tmp_dirs(tmp_dirs: list[TemporaryDirectory]) -> None:

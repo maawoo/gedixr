@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 import logging
 from datetime import datetime
 import geopandas as gp
@@ -141,27 +140,6 @@ def prepare_roi(vec: Path | list[Path]
         out[v_basename] = {'geo': roi.geometry[0], 'gdf': None}
     
     return out
-
-
-def date_from_gedi_file(gedi_path: Path) -> datetime:
-    """
-    Extracts the date from a GEDI L2A/L2B HDF5 file and converts it to a
-    datetime object.
-    
-    Parameters
-    ----------
-    gedi_path: Path
-        Path to a GEDI L2A/L2B HDF5 file.
-    
-    Returns
-    -------
-    date: datetime
-        Date of acquisition of the GEDI L2A/L2B file.
-    """
-    date_str = re.search('[AB]_[0-9]{13}', gedi_path.name).group()
-    date_str = date_str[2:]
-    date = datetime.strptime(date_str, '%Y%j%H%M%S')
-    return date
 
 
 def to_pathlib(x: str | list[str]) -> Path | list[Path]:
