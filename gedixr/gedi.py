@@ -183,13 +183,15 @@ def extract_data(directory: str | Path,
                                     log_handler=log_handler,
                                     gedi_path=fp)
                 
-                # (5) Convert to GeoDataFrame and set 'Shot Number' as index
+                # (5) Convert to GeoDataFrame, set 'Shot Number' as index and convert
+                # acquisition time to datetime
                 df['geometry'] = df.apply(lambda row:
                                           Point(row.longitude, row.latitude),
                                           axis=1)
                 df = df.drop(columns=['latitude', 'longitude'])
                 gdf = gp.GeoDataFrame(df)
                 gdf.set_crs(epsg=4326, inplace=True)
+                gdf['acq_time'] = pd.to_datetime(gdf['acq_time'])
                 
                 # (6) Subset spatially if any vector files were provided
                 if subset_vector is not None:
