@@ -80,7 +80,6 @@ def merge_gdf(gdf_l2a: GeoDataFrame,
               f"to unexpected results and/or missing data.")
     gdf_l2a = gdf_l2a.loc[:, ['rh98', 'geometry']]
     merged_gdf = gdf_l2b.merge(gdf_l2a, how='inner', on='geometry')
-    merged_gdf['acq_time'] = pd.to_datetime(merged_gdf['acq_time'])
     return merged_gdf
 
 
