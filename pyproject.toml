@@ -9,10 +9,11 @@ readme = "README.md"
 license = {text = "MIT License"}
 requires-python = ">=3.10"
 dependencies = [
-    "geopandas>=0.13",
+    "geopandas>=0.14",
     "h5netcdf",
     "tqdm",
     "geocube",
+    "pyarrow"
 ]
 
 [project.urls]
