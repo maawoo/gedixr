@@ -51,9 +51,7 @@ def extract_data(directory: str | Path,
                  variables: Optional[list[tuple[str, str]]] = None,
                  beams: Optional[list[str]] = None,
                  filter_month: Optional[tuple[int, int]] = None,
-                 subset_vector: Optional[str | Path | list[str | Path]] = None,
-                 save: bool = True,
-                 dry_run: bool = False
+                 subset_vector: Optional[str | Path | list[str | Path]] = None
                  ) -> (GeoDataFrame | dict[str, dict[str, GeoDataFrame | Polygon]]):
     """
     Extracts data from GEDI L2A or L2B files in HDF5 format using the following
@@ -66,7 +64,7 @@ def extract_data(directory: str | Path,
     (5) Convert Dataframe to GeoDataFrame including geometry column
     (6) OPTIONAL: Subset shots spatially using intersection via provided vector
         file or list of vector files
-    (7) OPTIONAL: Save the result as a GeoParquet file or multiple files (one per
+    (7) Save the result as a GeoParquet file or multiple files (one per
         provided vector file, if applicable)
     (8) Return a GeoDataFrame or dictionary of GeoDataFrame objects (one per provided
         vector file, if applicable)
@@ -100,19 +98,12 @@ def extract_data(directory: str | Path,
         Note that the basename of each vector file will be used in the output
         names, so it is recommended to give those files reasonable names
         beforehand!
-    save: bool, optional
-        Save resulting GeoDataFrame in a subdirectory called `extracted` of the 
-        directory specified with `gedi_dir`? Default is True.
-    dry_run: bool, optional
-        If set to True, will only print out how many GEDI files were found.
-        Default is False.
     
     Returns
     -------
     GeoDataFrame or dictionary
         In case of an output dictionary, these are the expected key, value pairs:
-            {'<Vector Basename>': {'geo': Polygon,
-                                   'gdf': GeoDataFrame}}
+            {'<Vector Basename>': {'geo': Polygon, 'gdf': GeoDataFrame}}
     """
     if gedi_product not in ALLOWED_PRODUCTS:
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of "
@@ -147,13 +138,6 @@ def extract_data(directory: str | Path,
             filepaths = [p for p in directory.rglob('*') if p.is_file() and
                          p.match(pattern)]
         
-        if dry_run:
-            print(f"{len(filepaths)} GEDI {gedi_product} files were found to "
-                  f"extract data from. Rerun without activated 'dry_run'-flag "
-                  f"to extract data.")
-            _cleanup_tmp_dirs(tmp_dirs)
-            anc.close_logging(log_handler=log_handler)
-            return None
         if len(filepaths) == 0:
             _cleanup_tmp_dirs(tmp_dirs)
             raise RuntimeError(f"No GEDI {gedi_product} files were found in "
@@ -217,17 +201,15 @@ def extract_data(directory: str | Path,
         out_dir = directory / 'extracted'
         out_dir.mkdir(exist_ok=True)
         if subset_vector is not None:
-            if save:
-                for vec_base, _dict in out_dict.items():
-                    if _dict['gdf'] is not None:
-                        out_name = f'{now}__{gedi_product}__subset_{vec_base}.parquet'
-                        _dict['gdf'].to_parquet(out_dir / out_name)
+            for vec_base, _dict in out_dict.items():
+                if _dict['gdf'] is not None:
+                    out_name = f'{now}__{gedi_product}__subset_{vec_base}.parquet'
+                    _dict['gdf'].to_parquet(out_dir / out_name)
             return out_dict
         else:
             out = pd.concat(gdf_list_no_spatial_subset)
-            if save:
-                out_name = f'{now}__{gedi_product}.parquet'
-                out.to_parquet(out_dir / out_name)
+            out_name = f'{now}__{gedi_product}.parquet'
+            out.to_parquet(out_dir / out_name)
             return out
     except Exception as msg:
         anc.log(handler=log_handler, mode='exception', msg=str(msg))
