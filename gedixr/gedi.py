@@ -51,7 +51,7 @@ def extract_data(directory: str | Path,
                  gedi_product: str,
                  temp_unpack_zip: bool = False,
                  variables: Optional[list[tuple[str, str]]] = None,
-                 beams: Optional[list[str]] = None,
+                 beams: Optional[str| list[str]] = None,
                  filter_month: Optional[tuple[int, int]] = None,
                  subset_vector: Optional[str | Path | list[str | Path]] = None
                  ) -> (GeoDataFrame | dict[str, dict[str, GeoDataFrame | Polygon]]):
@@ -87,9 +87,11 @@ def extract_data(directory: str | Path,
         List of tuples containing the desired column name in the returned
         GeoDataFrame and the GEDI layer name to be extracted. Defaults to those
         retrieved by `gedixr.gedi.DEFAULT_VARIABLES['<gedi_product>']`.
-    beams: list of str, optional
-        List of GEDI beams to extract values from. Defaults to all beams (power and
-        coverage beams).
+    beams: str or list of str, optional
+        Which GEDI beams to extract values from? Defaults to all beams (power and
+        coverage beams). Use `'full'` or `'coverage'` for power or coverage beams,
+        respectively. You can also provide a list of beam names, e.g.:
+        `['BEAM0101', 'BEAM0110']`.
     filter_month: tuple(int), optional
         Filter GEDI shots by month of the year? E.g. (6, 8) to only keep shots
         that were acquired between June 1st and August 31st of each year.
@@ -125,6 +127,12 @@ def extract_data(directory: str | Path,
         pattern = PATTERN_L2B
     if beams is None:
         beams = FULL_POWER_BEAMS + COVERAGE_BEAMS
+    elif beams == 'full':
+        beams = FULL_POWER_BEAMS
+    elif beams == 'coverage':
+        beams = COVERAGE_BEAMS
+    else:
+        beams = beams
     if filter_month is None:
         filter_month = (1, 12)
     if subset_vector is not None:
