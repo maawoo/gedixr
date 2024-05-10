@@ -25,8 +25,7 @@ def load_to_gdf(l2a: Optional[str | Path] = None,
     Returns
     -------
     final_gdf: GeoDataFrame
-        GeoDataFrame containing the data from the provided GEDI L2A and/or L2B
-        files.
+        GeoDataFrame containing the data from the provided GEDI L2A and/or L2B files.
     """    
     if all(x is None for x in [l2a, l2b]):
         raise RuntimeError("At least one of the parameters 'l2a' or "
@@ -46,12 +45,12 @@ def _reader(fp: str | Path) -> GeoDataFrame:
     """Reads a GeoParquet or GeoPackage file as a GeoDataFrame."""
     if isinstance(fp, str):
         fp = Path(fp)
-    gdf = None
     if fp.suffix == '.gpkg':
-        gdf = gp.read_file(fp)
+        return gp.read_file(fp)
     elif fp.suffix == '.parquet':
-        gdf = gp.read_parquet(fp)
-    return gdf
+        return gp.read_parquet(fp)
+    else:
+        raise RuntimeError(f"{fp.suffix} not supported")
 
 
 def merge_gdf(gdf_l2a: GeoDataFrame,
@@ -81,7 +80,6 @@ def merge_gdf(gdf_l2a: GeoDataFrame,
               f"to unexpected results and/or missing data.")
     gdf_l2a = gdf_l2a.loc[:, ['rh98', 'geometry']]
     merged_gdf = gdf_l2b.merge(gdf_l2a, how='inner', on='geometry')
-    merged_gdf['acq_time'] = pd.to_datetime(merged_gdf['acq_time'])
     return merged_gdf
 
 
