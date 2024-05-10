@@ -24,24 +24,26 @@ PATTERN_L2B = '*GEDI02_B_*.h5'
 FULL_POWER_BEAMS = ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
 COVERAGE_BEAMS = ['BEAM0000', 'BEAM0001', 'BEAM0010', 'BEAM0011']
 
-DEFAULT_VARIABLES = {'L2A': [('shot', 'shot_number'),
-                             ('latitude', 'lat_lowestmode'),
-                             ('longitude', 'lon_lowestmode'),
-                             ('degrade_flag', 'degrade_flag'),
-                             ('quality_flag', 'quality_flag'),
-                             ('sensitivity', 'sensitivity'),
-                             ('rh98', 'rh98')],
-                     'L2B': [('shot', 'shot_number'),
-                             ('latitude', 'geolocation/lat_lowestmode'),
-                             ('longitude', 'geolocation/lon_lowestmode'),
-                             ('degrade_flag', 'geolocation/degrade_flag'),
-                             ('quality_flag', 'l2b_quality_flag'),
-                             ('sensitivity', 'sensitivity'),
-                             ('tcc', 'cover'),
+DEFAULT_VARIABLES = {'L2A': [('rh98', 'rh98')],
+                     'L2B': [('tcc', 'cover'),
                              ('fhd', 'fhd_normal'),
                              ('pai', 'pai'),
                              ('rh100', 'rh100')]
                      }
+
+_DEFAULT_BASE = {'L2A': [('shot', 'shot_number'),
+                         ('latitude', 'lat_lowestmode'),
+                         ('longitude', 'lon_lowestmode'),
+                         ('degrade_flag', 'degrade_flag'),
+                         ('quality_flag', 'quality_flag'),
+                         ('sensitivity', 'sensitivity')],
+                 'L2B': [('shot', 'shot_number'),
+                         ('latitude', 'geolocation/lat_lowestmode'),
+                         ('longitude', 'geolocation/lon_lowestmode'),
+                         ('degrade_flag', 'geolocation/degrade_flag'),
+                         ('quality_flag', 'l2b_quality_flag'),
+                         ('sensitivity', 'sensitivity')]
+                 }
 
 
 def extract_data(directory: str | Path,
@@ -84,8 +86,8 @@ def extract_data(directory: str | Path,
         extraction process, but interruptions may cause them to remain on disk.
     variables: list of tuple of str, optional
         List of tuples containing the desired column name in the returned
-        GeoDataFrame and the respective GEDI layer name. Defaults to those retrieved
-        by `gedixr.gedi.DEFAULT_VARIABLES['<gedi_product>']`.
+        GeoDataFrame and the GEDI layer name to be extracted. Defaults to those
+        retrieved by `gedixr.gedi.DEFAULT_VARIABLES['<gedi_product>']`.
     beams: list of str, optional
         List of GEDI beams to extract values from. Defaults to all beams (power and
         coverage beams).
@@ -135,6 +137,7 @@ def extract_data(directory: str | Path,
         filter_month = (1, 12)
     if subset_vector is not None:
         out_dict = anc.prepare_roi(vec=subset_vector)
+    layers = _DEFAULT_BASE[gedi_product] + variables
     
     tmp_dirs = None
     try:
@@ -175,7 +178,7 @@ def extract_data(directory: str | Path,
                 # (3) Extract data for specified beams and variables
                 df = pd.DataFrame(_from_file(gedi_file=gedi,
                                              beams=beams,
-                                             variables=variables,
+                                             layers=layers,
                                              acq_time=date))
                 
                 # (4) Filter by quality flags
@@ -267,7 +270,7 @@ def _filepaths_from_zips(directory: Path,
 
 def _from_file(gedi_file: File,
                beams: list[str],
-               variables: list[tuple[str, str]],
+               layers: list[tuple[str, str]],
                acq_time: datetime
                ) -> dict:
     """
@@ -279,9 +282,9 @@ def _from_file(gedi_file: File,
         A loaded GEDI HDF5 file.
     beams: list of str
         List of GEDI beams to extract values from.
-    variables: list of tuple of str
+    layers: list of tuple of str
         List of tuples containing the desired column name in the returned
-        GeoDataFrame and the respective GEDI layer name.
+        GeoDataFrame and the respective GEDI layer name to be extracted.
     acq_time: datetime
         Acquisition time of the GEDI file.
     
@@ -292,7 +295,7 @@ def _from_file(gedi_file: File,
     """
     out = {}
     for beam in beams:
-        for k, v in variables:
+        for k, v in layers:
             if v.startswith('rh') and v != 'rh100':
                 if k not in out:
                     out[k] = []
