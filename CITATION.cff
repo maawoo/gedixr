@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+title: gedixr
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Marco
+    family-names: Wolsza
+    email: marco.wolsza@uni-jena.de
+    affiliation: University of Jena
+    orcid: 'https://orcid.org/0000-0002-5231-7208'
+identifiers:
+  - type: url
+    value: 'https://github.com/maawoo/gedixr/tree/v0.3.0'
+    description: The URL of version 0.3.0 of the software.
+repository-code: 'https://github.com/maawoo/gedixr'
+license: MIT
+commit: f6742d2
+version: 0.3.0
+date-released: '2024-05-10'
