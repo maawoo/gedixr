@@ -35,12 +35,16 @@ DEFAULT_VARIABLES = {'L2A': [('rh98', 'rh98')],
 _DEFAULT_BASE = {'L2A': [('shot', 'shot_number'),
                          ('latitude', 'lat_lowestmode'),
                          ('longitude', 'lon_lowestmode'),
+                         ('elev', 'elev_lowestmode'),
+                         ('elev_dem', 'digital_elevation_model'),
                          ('degrade_flag', 'degrade_flag'),
                          ('quality_flag', 'quality_flag'),
                          ('sensitivity', 'sensitivity')],
                  'L2B': [('shot', 'shot_number'),
                          ('latitude', 'geolocation/lat_lowestmode'),
                          ('longitude', 'geolocation/lon_lowestmode'),
+                         ('elev', 'geolocation/elev_lowestmode'),
+                         ('elev_dem', 'geolocation/digital_elevation_model'),
                          ('degrade_flag', 'geolocation/degrade_flag'),
                          ('quality_flag', 'l2b_quality_flag'),
                          ('sensitivity', 'sensitivity')]
@@ -321,7 +325,7 @@ def filter_quality(df: DataFrame,
     Filters a given pandas.Dataframe containing GEDI data using its quality
     flags. The values used here have been adopted from the official GEDI L2A/L2B
     tutorials:
-    https://git.earthdata.nasa.gov/projects/LPDUR/repos/gedi-v2-tutorials/browse
+    https://github.com/nasa/GEDI-Data-Resources
     
     Parameters
     ----------
@@ -338,11 +342,13 @@ def filter_quality(df: DataFrame,
         The quality-filtered dataframe.
     """
     len_before = len(df)
-    cond = ((df['quality_flag'].ne(0)) &
-            (df['degrade_flag'] < 1) &
-            (df['sensitivity'] > 0.9))
-    df = df.where(cond).dropna()
-    df = df.drop(columns=['quality_flag', 'degrade_flag', 'sensitivity'])
+    
+    df = df.where(df['quality_flag'].ne(0)).dropna()
+    df = df.where(df['degrade_flag'] < 1).dropna()
+    df = df.where(df['sensitivity'] > 0.9).dropna()
+    df = df.where(abs(df['elev'] - df['elev_dem']) < 50).dropna()
+    df = df.drop(columns=['quality_flag', 'degrade_flag', 'sensitivity', 'elev_dem'])
+    
     len_after = len_before - len(df)
     filt_perc = round((len_after / len_before) * 100, 2)
     msg = f"{str(len_after).zfill(5)}/{str(len_before).zfill(5)} " \
