@@ -11,7 +11,6 @@ from typing import Optional
 from tempfile import TemporaryDirectory
 from datetime import datetime
 from logging import Logger
-from h5py import File
 from pandas import DataFrame
 from geopandas import GeoDataFrame
 from shapely import Polygon
@@ -169,10 +168,12 @@ def extract_data(directory: str | Path,
                 gedi = h5py.File(fp, 'r')
                 
                 # (3) Extract data for specified beams and variables
-                df = pd.DataFrame(_from_file(gedi_file=gedi,
+                df = pd.DataFrame(_from_file(gedi=gedi,
+                                             gedi_fp=fp,
                                              beams=beams,
                                              layers=layers,
-                                             acq_time=date))
+                                             acq_time=date,
+                                             log_handler=log_handler))
                 
                 # (4) Filter by quality flags
                 df = filter_quality(df=df,
@@ -268,18 +269,22 @@ def _filepaths_from_zips(directory: Path,
     return filepaths, tmp_dirs
 
 
-def _from_file(gedi_file: File,
+def _from_file(gedi: h5py.File,
+               gedi_fp: Path,
                beams: list[str],
                layers: list[tuple[str, str]],
-               acq_time: datetime
+               acq_time: datetime,
+               log_handler: Logger
                ) -> dict:
     """
     Extracts values from a GEDI HDF5 file.
     
     Parameters
     ----------
-    gedi_file: File
+    gedi: h5py.File
         A loaded GEDI HDF5 file.
+    gedi_fp: Path
+        Path to the current GEDI HDF5 file.
     beams: list of str
         List of GEDI beams to extract values from.
     layers: list of tuple of str
@@ -287,6 +292,8 @@ def _from_file(gedi_file: File,
         GeoDataFrame and the respective GEDI layer name to be extracted.
     acq_time: datetime
         Acquisition time of the GEDI file.
+    log_handler: Logger
+        Current log handler.
     
     Returns
     -------
@@ -295,20 +302,24 @@ def _from_file(gedi_file: File,
     """
     out = {}
     for beam in beams:
-        for k, v in layers:
-            if v.startswith('rh') and v != 'rh100':
-                if k not in out:
-                    out[k] = []
-                out[k].extend([round(h[int(v[2:])] * 100) for h in 
-                               gedi_file[f'{beam}/rh'][()]])
-            elif v == 'shot_number':
-                if k not in out:
-                    out[k] = []
-                out[k].extend([str(h) for h in gedi_file[f'{beam}/{v}'][()]])
-            else:
-                if k not in out:
-                    out[k] = []
-                out[k].extend(gedi_file[f'{beam}/{v}'][()])
+        try:
+            for k, v in layers:
+                if v.startswith('rh') and v != 'rh100':
+                    if k not in out:
+                        out[k] = []
+                    out[k].extend([round(h[int(v[2:])] * 100) for h in
+                                   gedi[f'{beam}/rh'][()]])
+                elif v == 'shot_number':
+                    if k not in out:
+                        out[k] = []
+                    out[k].extend([str(h) for h in gedi[f'{beam}/{v}'][()]])
+                else:
+                    if k not in out:
+                        out[k] = []
+                    out[k].extend(gedi[f'{beam}/{v}'][()])
+        except Exception as e:
+            msg = f"{beam} doesn't exist and was skipped."
+            anc.log(handler=log_handler, mode='info', file=gedi_fp.name, msg=msg)
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
 
