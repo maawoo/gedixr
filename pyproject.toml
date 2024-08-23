@@ -1,6 +1,6 @@
 [project]
 name = "gedixr"
-version = "0.3.0"
+version = "0.3.1"
 authors = [
   {name="Marco Wolsza", email="marco.wolsza@uni-jena.de" },
 ]
