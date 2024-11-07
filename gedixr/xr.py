@@ -54,7 +54,9 @@ def _reader(fp: str | Path) -> GeoDataFrame:
 
 
 def merge_gdf(gdf_l2a: GeoDataFrame,
-              gdf_l2b: GeoDataFrame
+              gdf_l2b: GeoDataFrame,
+              l2a_variables: Optional[list[str]] = None,
+              l2b_variables: Optional[list[str]] = None
               ) -> GeoDataFrame:
     """
     Merges two GEDI L2A and L2B GeoDataFrames on their `geometry` column.
@@ -65,6 +67,12 @@ def merge_gdf(gdf_l2a: GeoDataFrame,
         GeoDataFrame containing GEDI L2A data.
     gdf_l2b: GeoDataFrame
         GeoDataFrame containing GEDI L2B data.
+    l2a_variables: list of str, optional
+        List of L2A variables to be included in the merged GeoDataFrame.
+        Default is None, which will include default rh98 variable.
+    l2b_variables: list of str, optional
+        List of L2B variables to be included in the merged GeoDataFrame.
+        Default is None, which will include default variables.
     
     Returns
     -------
@@ -95,7 +103,11 @@ def merge_gdf(gdf_l2a: GeoDataFrame,
                     f"({len(gdf_l2a)} vs. {len(gdf_l2b)})."
                     f"\nThey will be merged on their geometry column, which may lead "
                     f"to unexpected results and/or missing data.")
-            gdf_l2a_aoi = gdf_l2a_aoi.loc[:, ['rh98', 'geometry']]
+            if l2a_variables == None:
+                gdf_l2a_aoi = gdf_l2a_aoi.loc[:, ['rh98', 'geometry']]
+            else:
+                gdf_l2a_aoi = gdf_l2a_aoi.loc[:, l2a_variables + ['geometry']]
+
             merged_gdf = gdf_l2b_aoi.merge(gdf_l2a_aoi, how='inner', on='geometry')
             if nr_aoi > 1:
                 merged_gdf_dict[aoi]['gdf'] = merged_gdf
@@ -109,7 +121,10 @@ def merge_gdf(gdf_l2a: GeoDataFrame,
               f"({len(gdf_l2a)} vs. {len(gdf_l2b)})."
               f"\nThey will be merged on their geometry column, which may lead "
               f"to unexpected results and/or missing data.")
-    gdf_l2a = gdf_l2a.loc[:, ['rh98', 'geometry']]
+    if l2a_variables == None:
+        gdf_l2a = gdf_l2a.loc[:, ['rh98', 'geometry']]
+    else:
+        gdf_l2a = gdf_l2a.loc[:, l2a_variables + ['geometry']]
     merged_gdf = gdf_l2b.merge(gdf_l2a, how='inner', on='geometry')
     return merged_gdf
 
