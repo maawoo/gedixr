@@ -72,6 +72,37 @@ def merge_gdf(gdf_l2a: GeoDataFrame,
         GeoDataFrame containing the data from the provided GEDI L2A and L2B
         GeoDataFrames.
     """
+    if type(gdf_l2a)==dict:
+        if len(gdf_l2a.keys()) != len(gdf_l2b.keys()):
+            print(f"WARNING: The GEDI L2A and L2B GeoDataFrames have different "
+                  f"number of AOI's "
+                  f"({len(gdf_l2a.keys())} vs. {len(gdf_l2b.keys())})."
+                  f"\nThey will be merged per AOI, which may lead "
+                  f"to unexpected results and/or missing data.")
+        # loop over the aoi's and merge the dataframes
+        # get the number of aoi's from the longer dictionary
+        nr_aoi = max(len(gdf_l2a.keys()), len(gdf_l2b.keys()))
+        # if lengdf_l2a.keys() > 1, store the merged gdf in a dictionary
+        if nr_aoi > 1:
+            merged_gdf_dict = {}
+        for aoi in gdf_l2a.keys():
+            # convert to geodataframe
+            gdf_l2a_aoi = gdf_l2a[aoi]['gdf']
+            gdf_l2b_aoi = gdf_l2b[aoi]['gdf']
+            if len(gdf_l2a) != len(gdf_l2b):
+                print(f"WARNING: The GEDI L2A and L2B GeoDataFrames have different "
+                    f"number of rows "
+                    f"({len(gdf_l2a)} vs. {len(gdf_l2b)})."
+                    f"\nThey will be merged on their geometry column, which may lead "
+                    f"to unexpected results and/or missing data.")
+            gdf_l2a_aoi = gdf_l2a_aoi.loc[:, ['rh98', 'geometry']]
+            merged_gdf = gdf_l2b_aoi.merge(gdf_l2a_aoi, how='inner', on='geometry')
+            if nr_aoi > 1:
+                merged_gdf_dict[aoi]['gdf'] = merged_gdf
+            else:
+                return merged_gdf
+        return merged_gdf_dict
+
     if len(gdf_l2a) != len(gdf_l2b):
         print(f"WARNING: The GEDI L2A and L2B GeoDataFrames have different "
               f"number of rows "
