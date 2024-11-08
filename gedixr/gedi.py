@@ -136,7 +136,7 @@ def extract_data(directory: str | Path,
     if filter_month is None:
         filter_month = (1, 12)
     if subset_vector is not None:
-        out_dict = anc.prepare_roi(vec=subset_vector)
+        out_dict = anc.prepare_vec(vec=subset_vector)
     layers = _DEFAULT_BASE[gedi_product] + variables
     
     tmp_dirs = None
