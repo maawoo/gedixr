@@ -171,6 +171,7 @@ def extract_data(directory: str | Path,
                 # (3) Extract data for specified beams and variables
                 df = pd.DataFrame(_from_file(gedi=gedi,
                                              gedi_fp=fp,
+                                             gedi_product=gedi_product,
                                              beams=beams,
                                              layers=layers,
                                              acq_time=date,
@@ -277,6 +278,7 @@ def _filepaths_from_zips(directory: Path,
 
 def _from_file(gedi: h5py.File,
                gedi_fp: Path,
+               gedi_product: str,
                beams: list[str],
                layers: list[tuple[str, str]],
                acq_time: datetime,
@@ -291,6 +293,8 @@ def _from_file(gedi: h5py.File,
         A loaded GEDI HDF5 file.
     gedi_fp: Path
         Path to the current GEDI HDF5 file.
+    gedi_product: str
+        GEDI product type. Either 'L2A' or 'L2B'.
     beams: list of str
         List of GEDI beams to extract values from.
     layers: list of tuple of str
@@ -310,10 +314,11 @@ def _from_file(gedi: h5py.File,
     for beam in beams:
         try:
             for k, v in layers:
-                if v.startswith('rh') and v != 'rh100':
+                if v.startswith('rh') and gedi_product == 'L2A':
                     if k not in out:
                         out[k] = []
-                    out[k].extend([round(h[int(v[2:])] * 100) for h in
+                    idx = int(v[2:])
+                    out[k].extend([round(h_bin[idx] * 100) for h_bin in
                                    gedi[f'{beam}/rh'][()]])
                 elif v == 'shot_number':
                     if k not in out:
@@ -324,7 +329,8 @@ def _from_file(gedi: h5py.File,
                         out[k] = []
                     out[k].extend(gedi[f'{beam}/{v}'][()])
         except Exception as msg:
-            anc.log(handler=log_handler, mode='exception', file=gedi_fp.name, msg=str(msg))
+            anc.log(handler=log_handler, mode='exception', file=gedi_fp.name,
+                    msg=str(msg))
             _error_counter()
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
