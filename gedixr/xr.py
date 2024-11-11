@@ -90,9 +90,11 @@ def merge_gdf(gdf_l2a: GeoDataFrame,
         # loop over the aoi's and merge the dataframes
         # get the number of aoi's from the longer dictionary
         nr_aoi = max(len(gdf_l2a.keys()), len(gdf_l2b.keys()))
+        unique_keys = set(gdf_l2a.keys()).union(set(gdf_l2b.keys()))
         # if lengdf_l2a.keys() > 1, store the merged gdf in a dictionary
         if nr_aoi > 1:
-            merged_gdf_dict = {}
+            # create a dictionary with the aois as keys and an empty placeholder as value for the gdf
+            merged_gdf_dict = {aoi: {'gdf': None} for aoi in unique_keys}
         for aoi in gdf_l2a.keys():
             # convert to geodataframe
             gdf_l2a_aoi = gdf_l2a[aoi]['gdf']
@@ -110,7 +112,8 @@ def merge_gdf(gdf_l2a: GeoDataFrame,
 
             merged_gdf = gdf_l2b_aoi.merge(gdf_l2a_aoi, how='inner', on='geometry')
             if nr_aoi > 1:
-                merged_gdf_dict[aoi]['gdf'] = merged_gdf
+                # add the merged gdf to the dictionary with aoi as key
+                merged_gdf_dict[aoi] = {'gdf': merged_gdf}
             else:
                 return merged_gdf
         return merged_gdf_dict
