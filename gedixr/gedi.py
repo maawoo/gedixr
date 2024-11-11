@@ -45,6 +45,8 @@ _DEFAULT_BASE = {'L2A': [('shot', 'shot_number'),
                          ('sensitivity', 'sensitivity')]
                  }
 
+N_ERRORS = 0
+
 
 def extract_data(directory: str | Path,
                  gedi_product: str,
@@ -116,7 +118,6 @@ def extract_data(directory: str | Path,
     subset_vector = anc.to_pathlib(x=subset_vector) if \
         (subset_vector is not None) else None
     log_handler, now = anc.set_logging(directory, gedi_product)
-    n_err = 0
     out_dict = None
     if gedi_product == 'L2A':
         variables = DEFAULT_VARIABLES['L2A'] if variables is None else variables
@@ -135,7 +136,7 @@ def extract_data(directory: str | Path,
     if filter_month is None:
         filter_month = (1, 12)
     if subset_vector is not None:
-        out_dict = anc.prepare_roi(vec=subset_vector)
+        out_dict = anc.prepare_vec(vec=subset_vector)
     layers = _DEFAULT_BASE[gedi_product] + variables
     
     tmp_dirs = None
@@ -170,6 +171,7 @@ def extract_data(directory: str | Path,
                 # (3) Extract data for specified beams and variables
                 df = pd.DataFrame(_from_file(gedi=gedi,
                                              gedi_fp=fp,
+                                             gedi_product=gedi_product,
                                              beams=beams,
                                              layers=layers,
                                              acq_time=date,
@@ -209,7 +211,7 @@ def extract_data(directory: str | Path,
             except Exception as msg:
                 anc.log(handler=log_handler, mode='exception', file=fp.name,
                         msg=str(msg))
-                n_err += 1
+                _error_counter()
         
         # (7) & (8)
         out_dir = directory / 'extracted'
@@ -227,13 +229,18 @@ def extract_data(directory: str | Path,
             return out
     except Exception as msg:
         anc.log(handler=log_handler, mode='exception', msg=str(msg))
-        n_err += 1
+        _error_counter()
     finally:
         _cleanup_tmp_dirs(tmp_dirs)
         anc.close_logging(log_handler=log_handler)
-        if n_err > 0:
-            print(f"WARNING: {n_err} errors occurred during the extraction "
+        if N_ERRORS > 0:
+            print(f"WARNING: {N_ERRORS} errors occurred during the extraction "
                   f"process. Please check the log file!")
+
+
+def _error_counter():
+    global N_ERRORS
+    N_ERRORS += 1
 
 
 def _date_from_gedi_file(gedi_path: Path) -> datetime:
@@ -271,6 +278,7 @@ def _filepaths_from_zips(directory: Path,
 
 def _from_file(gedi: h5py.File,
                gedi_fp: Path,
+               gedi_product: str,
                beams: list[str],
                layers: list[tuple[str, str]],
                acq_time: datetime,
@@ -285,6 +293,8 @@ def _from_file(gedi: h5py.File,
         A loaded GEDI HDF5 file.
     gedi_fp: Path
         Path to the current GEDI HDF5 file.
+    gedi_product: str
+        GEDI product type. Either 'L2A' or 'L2B'.
     beams: list of str
         List of GEDI beams to extract values from.
     layers: list of tuple of str
@@ -304,10 +314,11 @@ def _from_file(gedi: h5py.File,
     for beam in beams:
         try:
             for k, v in layers:
-                if v.startswith('rh') and v != 'rh100':
+                if v.startswith('rh') and gedi_product == 'L2A':
                     if k not in out:
                         out[k] = []
-                    out[k].extend([round(h[int(v[2:])] * 100) for h in
+                    idx = int(v[2:])
+                    out[k].extend([round(h_bin[idx] * 100) for h_bin in
                                    gedi[f'{beam}/rh'][()]])
                 elif v == 'shot_number':
                     if k not in out:
@@ -317,9 +328,10 @@ def _from_file(gedi: h5py.File,
                     if k not in out:
                         out[k] = []
                     out[k].extend(gedi[f'{beam}/{v}'][()])
-        except Exception as e:
-            msg = f"{beam} doesn't exist and was skipped."
-            anc.log(handler=log_handler, mode='info', file=gedi_fp.name, msg=msg)
+        except Exception as msg:
+            anc.log(handler=log_handler, mode='exception', file=gedi_fp.name,
+                    msg=str(msg))
+            _error_counter()
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
 
