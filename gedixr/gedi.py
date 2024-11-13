@@ -337,15 +337,15 @@ def _from_file(gedi: h5py.File,
                         out[k] = []
                     idx = int(v[2:])
                     out[k].extend([round(h_bin[idx] * 100) for h_bin in
-                                   gedi[f'{beam}/rh'][()]])
+                                   gedi[f"{beam}/rh"][()]])
                 elif v == 'shot_number':
                     if k not in out:
                         out[k] = []
-                    out[k].extend([str(h) for h in gedi[f'{beam}/{v}'][()]])
+                    out[k].extend([f"{_id:0>18}" for _id in gedi[f"{beam}/{v}"][()]])
                 else:
                     if k not in out:
                         out[k] = []
-                    out[k].extend(gedi[f'{beam}/{v}'][()])
+                    out[k].extend(gedi[f"{beam}/{v}"][()])
         except Exception as msg:
             anc.log(handler=log_handler, mode='exception',
                     file=f"{gedi_fp.name} ({beam})", msg=str(msg))
