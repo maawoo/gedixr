@@ -105,8 +105,7 @@ def close_logging(log_handler: logging.Logger) -> None:
             log_handler.removeHandler(handler)
 
 
-def prepare_roi(vec: Path | list[Path]
-                ) -> dict[str, dict[str, Polygon | None]]:
+def prepare_vec(vec: Path | list[Path]) -> dict[str, dict[str, Polygon | None]]:
     """
     Prepares a vector file or list of vector files for spatial subsetting by
     extracting the geometry of each vector file and storing it in a dictionary.
@@ -125,24 +124,25 @@ def prepare_roi(vec: Path | list[Path]
         {'<Vector Basename>': {'geo': Polygon,
                                'gdf': None}}
     """
+    out = {}
     if not isinstance(vec, list):
         vec = [vec]
-    
-    out = {}
-    for v in vec:
-        roi = gp.GeoDataFrame.from_file(str(v))
-        if not roi.crs == 'EPSG:4326':
-            roi = roi.to_crs('EPSG:4326')
-        if len(roi) > 1:
-            print("WARNING: Multi-feature polygon detected. Only the first "
-                  "feature will be used to subset the GEDI data!")
-        v_basename = Path(v).name.split('.')[0]
-        out[v_basename] = {'geo': roi.geometry[0], 'gdf': None}
-    
+    for fp in vec:
+        key_base = Path(fp).name.split('.')[0]
+        gdf = gp.GeoDataFrame.from_file(str(fp))
+        if not gdf.crs == 'EPSG:4326':
+            gdf = gdf.to_crs('EPSG:4326')
+        if len(gdf) > 1:
+            for i, row in gdf.iterrows():
+                key = f"{key_base}_{i}"
+                out[key] = {'geo': row.geometry, 'gdf': None}
+        else:
+            out[key_base] = {'geo': gdf.iloc[0].geometry, 'gdf': None}
     return out
 
 
-def to_pathlib(x: str | list[str]) -> Path | list[Path]:
+def to_pathlib(x: str | list[str] | list[Path]
+               ) -> Path | list[Path]:
     """
     Convert string(s) to Path object(s).
     

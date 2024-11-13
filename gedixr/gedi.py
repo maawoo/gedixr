@@ -11,7 +11,6 @@ from typing import Optional
 from tempfile import TemporaryDirectory
 from datetime import datetime
 from logging import Logger
-from h5py import File
 from pandas import DataFrame
 from geopandas import GeoDataFrame
 from shapely import Polygon
@@ -36,19 +35,23 @@ _DEFAULT_BASE = {'L2A': [('shot', 'shot_number'),
                          ('latitude', 'lat_lowestmode'),
                          ('longitude', 'lon_lowestmode'),
                          ('elev', 'elev_lowestmode'),
-                         ('elev_dem', 'digital_elevation_model'),
+                         ('elev_dem_tdx', 'digital_elevation_model'),
                          ('degrade_flag', 'degrade_flag'),
                          ('quality_flag', 'quality_flag'),
-                         ('sensitivity', 'sensitivity')],
+                         ('sensitivity', 'sensitivity'),
+                         ('num_detectedmodes', 'num_detectedmodes')],
                  'L2B': [('shot', 'shot_number'),
                          ('latitude', 'geolocation/lat_lowestmode'),
                          ('longitude', 'geolocation/lon_lowestmode'),
                          ('elev', 'geolocation/elev_lowestmode'),
-                         ('elev_dem', 'geolocation/digital_elevation_model'),
+                         ('elev_dem_tdx', 'geolocation/digital_elevation_model'),
                          ('degrade_flag', 'geolocation/degrade_flag'),
                          ('quality_flag', 'l2b_quality_flag'),
-                         ('sensitivity', 'sensitivity')]
+                         ('sensitivity', 'sensitivity'),
+                         ('num_detectedmodes', 'num_detectedmodes')]
                  }
+
+N_ERRORS = 0
 
 
 def extract_data(directory: str | Path,
@@ -57,7 +60,8 @@ def extract_data(directory: str | Path,
                  variables: Optional[list[tuple[str, str]]] = None,
                  beams: Optional[str| list[str]] = None,
                  filter_month: Optional[tuple[int, int]] = None,
-                 subset_vector: Optional[str | Path | list[str | Path]] = None
+                 subset_vector: Optional[str | Path | list[str | Path]] = None,
+                 apply_quality_filter: bool = True
                  ) -> (GeoDataFrame | dict[str, dict[str, GeoDataFrame | Polygon]]):
     """
     Extracts data from GEDI L2A or L2B files in HDF5 format using the following
@@ -66,7 +70,7 @@ def extract_data(directory: str | Path,
     (1) Search a root directory recursively for GEDI L2A or L2B HDF5 files
     (2) OPTIONAL: Filter files by month of acquisition
     (3) Extract data from each file for specified beams and variables into a Dataframe
-    (4) Filter out shots of poor quality
+    (4) OPTIONAL: Filter out shots of poor quality
     (5) Convert Dataframe to GeoDataFrame including geometry column
     (6) OPTIONAL: Subset shots spatially using intersection via provided vector
         file or list of vector files
@@ -106,6 +110,11 @@ def extract_data(directory: str | Path,
         Note that the basename of each vector file will be used in the output
         names, so it is recommended to give those files reasonable names
         beforehand!
+    apply_quality_filter: bool, optional
+        Apply a basic quality filter to the GEDI data? Default is True. This basic
+        filtering strategy will filter out shots with quality_flag != 1,
+        degrade_flag != 0, num_detectedmodes > 1, and difference between detected
+        elevation and DEM elevation < 100 m.
     
     Returns
     -------
@@ -121,7 +130,6 @@ def extract_data(directory: str | Path,
     subset_vector = anc.to_pathlib(x=subset_vector) if \
         (subset_vector is not None) else None
     log_handler, now = anc.set_logging(directory, gedi_product)
-    n_err = 0
     out_dict = None
     if gedi_product == 'L2A':
         variables = DEFAULT_VARIABLES['L2A'] if variables is None else variables
@@ -140,7 +148,7 @@ def extract_data(directory: str | Path,
     if filter_month is None:
         filter_month = (1, 12)
     if subset_vector is not None:
-        out_dict = anc.prepare_roi(vec=subset_vector)
+        out_dict = anc.prepare_vec(vec=subset_vector)
     layers = _DEFAULT_BASE[gedi_product] + variables
     
     tmp_dirs = None
@@ -173,15 +181,17 @@ def extract_data(directory: str | Path,
                 gedi = h5py.File(fp, 'r')
                 
                 # (3) Extract data for specified beams and variables
-                df = pd.DataFrame(_from_file(gedi_file=gedi,
+                df = pd.DataFrame(_from_file(gedi=gedi,
+                                             gedi_fp=fp,
+                                             gedi_product=gedi_product,
                                              beams=beams,
                                              layers=layers,
-                                             acq_time=date))
+                                             acq_time=date,
+                                             log_handler=log_handler))
                 
                 # (4) Filter by quality flags
-                df = filter_quality(df=df,
-                                    log_handler=log_handler,
-                                    gedi_path=fp)
+                if apply_quality_filter:
+                    df = filter_quality(df=df, log_handler=log_handler, gedi_path=fp)
                 
                 # (5) Convert to GeoDataFrame, set 'Shot Number' as index and convert
                 # acquisition time to datetime
@@ -212,7 +222,7 @@ def extract_data(directory: str | Path,
             except Exception as msg:
                 anc.log(handler=log_handler, mode='exception', file=fp.name,
                         msg=str(msg))
-                n_err += 1
+                _error_counter()
         
         # (7) & (8)
         out_dir = directory / 'extracted'
@@ -230,13 +240,18 @@ def extract_data(directory: str | Path,
             return out
     except Exception as msg:
         anc.log(handler=log_handler, mode='exception', msg=str(msg))
-        n_err += 1
+        _error_counter()
     finally:
         _cleanup_tmp_dirs(tmp_dirs)
         anc.close_logging(log_handler=log_handler)
-        if n_err > 0:
-            print(f"WARNING: {n_err} errors occurred during the extraction "
+        if N_ERRORS > 0:
+            print(f"WARNING: {N_ERRORS} errors occurred during the extraction "
                   f"process. Please check the log file!")
+
+
+def _error_counter():
+    global N_ERRORS
+    N_ERRORS += 1
 
 
 def _date_from_gedi_file(gedi_path: Path) -> datetime:
@@ -272,18 +287,25 @@ def _filepaths_from_zips(directory: Path,
     return filepaths, tmp_dirs
 
 
-def _from_file(gedi_file: File,
+def _from_file(gedi: h5py.File,
+               gedi_fp: Path,
+               gedi_product: str,
                beams: list[str],
                layers: list[tuple[str, str]],
-               acq_time: datetime
+               acq_time: datetime,
+               log_handler: Logger
                ) -> dict:
     """
     Extracts values from a GEDI HDF5 file.
     
     Parameters
     ----------
-    gedi_file: File
+    gedi: h5py.File
         A loaded GEDI HDF5 file.
+    gedi_fp: Path
+        Path to the current GEDI HDF5 file.
+    gedi_product: str
+        GEDI product type. Either 'L2A' or 'L2B'.
     beams: list of str
         List of GEDI beams to extract values from.
     layers: list of tuple of str
@@ -291,6 +313,8 @@ def _from_file(gedi_file: File,
         GeoDataFrame and the respective GEDI layer name to be extracted.
     acq_time: datetime
         Acquisition time of the GEDI file.
+    log_handler: Logger
+        Current log handler.
     
     Returns
     -------
@@ -299,20 +323,30 @@ def _from_file(gedi_file: File,
     """
     out = {}
     for beam in beams:
-        for k, v in layers:
-            if v.startswith('rh') and v != 'rh100':
-                if k not in out:
-                    out[k] = []
-                out[k].extend([round(h[int(v[2:])] * 100) for h in 
-                               gedi_file[f'{beam}/rh'][()]])
-            elif v == 'shot_number':
-                if k not in out:
-                    out[k] = []
-                out[k].extend([str(h) for h in gedi_file[f'{beam}/{v}'][()]])
-            else:
-                if k not in out:
-                    out[k] = []
-                out[k].extend(gedi_file[f'{beam}/{v}'][()])
+        if beam not in list(gedi.keys()):
+            anc.log(handler=log_handler, mode='info', file=gedi_fp.name,
+                    msg=f"{beam} not found in file")
+            continue
+        try:
+            for k, v in layers:
+                if v.startswith('rh') and gedi_product == 'L2A':
+                    if k not in out:
+                        out[k] = []
+                    idx = int(v[2:])
+                    out[k].extend([round(h_bin[idx] * 100) for h_bin in
+                                   gedi[f'{beam}/rh'][()]])
+                elif v == 'shot_number':
+                    if k not in out:
+                        out[k] = []
+                    out[k].extend([str(h) for h in gedi[f'{beam}/{v}'][()]])
+                else:
+                    if k not in out:
+                        out[k] = []
+                    out[k].extend(gedi[f'{beam}/{v}'][()])
+        except Exception as msg:
+            anc.log(handler=log_handler, mode='exception',
+                    file=f"{gedi_fp.name} ({beam})", msg=str(msg))
+            _error_counter()
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
 
@@ -325,7 +359,7 @@ def filter_quality(df: DataFrame,
     Filters a given pandas.Dataframe containing GEDI data using its quality
     flags. The values used here have been adopted from the official GEDI L2A/L2B
     tutorials:
-    https://github.com/nasa/GEDI-Data-Resources
+    https://git.earthdata.nasa.gov/projects/LPDUR/repos/gedi-v2-tutorials/browse
     
     Parameters
     ----------
