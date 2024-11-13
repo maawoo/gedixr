@@ -23,9 +23,9 @@ pip install git+https://github.com/maawoo/gedixr.git
 See the [Tags](https://github.com/maawoo/gedixr/tags) section of the repository
 for available versions to install:
 ```bash
-conda env create --file https://raw.githubusercontent.com/maawoo/gedixr/v0.3.0/environment.yml
+conda env create --file https://raw.githubusercontent.com/maawoo/gedixr/v0.4.0/environment.yml
 conda activate gedixr_env
-pip install git+https://github.com/maawoo/gedixr.git@v0.3.0
+pip install git+https://github.com/maawoo/gedixr.git@v0.4.0
 ```
 
 ## Usage
@@ -57,7 +57,7 @@ extents, you can then merge both GeoDataFrames:
 ```python
 from gedixr.xr import merge_gdf
 
-gdf = merge_gdf(gdf_l2a=gdf_l2a, gdf_l2b=gdf_l2b)
+gdf = merge_gdf(l2a=gdf_l2a, l2b=gdf_l2b)
 ```
 
 If you want to rasterize the GeoDataFrame and use the data as an `xarray.Dataset`:
@@ -76,9 +76,9 @@ gdf = load_to_gdf(l2a="path/to/extracted_l2a.parquet")
 
 ### Custom subsetting
 If your GEDI data is not subsetted (i.e., each file covering an entire orbit), 
-you can provide a vector file (e.g. GeoJSON, GPKG, etc.) to extract metrics for 
-your area of interest. You can also provide a list of vector files to extract 
-for multiple areas at the same time:
+you can provide a vector file (e.g. GeoJSON, GeoPackage, etc.) to extract 
+metrics for your area of interest. You can also provide a list of vector files 
+to extract for multiple areas at the same time:
 ```python
 from gedixr.gedi import extract_data
 
@@ -118,7 +118,7 @@ via the `variables` parameter:
 - `rh98`: Relative height metrics at 98% interval
 
 **L2B**:
-- `rh100`: Height above ground of the received waveform signal start (rh101 from L2A)
+- `rh100`: Height above ground of the received waveform signal start (`rh101` from L2A)
 - `tcc`: Total canopy cover
 - `fhd`: Foliage Height Diversity
 - `pai`: Total Plant Area Index
@@ -130,13 +130,20 @@ product: [L2A](https://lpdaac.usgs.gov/products/gedi02_av002/) and [L2B](https:/
 The extraction process will automatically apply quality filtering based on the 
 `quality_flag`, `degrade_flag` and `sensitivity` variables using the following
 default values:
-- `quality_flag` not equal 0 
-- `degrade_flag` < 1
-- `sensitivity` > 0.9
+- `quality_flag` == 1 
+- `degrade_flag` == 0
+- `num_detectedmodes` > 0
+- abs(`ele_lowestmode` - `digital_elevation_model`) < 100
+
+Please note that `quality_flag` already includes filtering to a `sensitivity` 
+range of 0.9 - 1.0. 
+
+If you want to apply a different quality filtering strategy, you can disable the
+default filtering by setting `apply_quality_filter=False` and apply your own filtering
+after the extraction process.
 
 ## Notes
-<sup>1</sup>See [#1](https://github.com/maawoo/gedixr/issues/1) for a related 
-issue regarding the download of GEDI data.
+<sup>1</sup>See [#1](https://github.com/maawoo/gedixr/issues/1) for a related issue regarding the download of GEDI data.
 
 <sup>2</sup>The products need to be unzipped first which can seriously increase 
 the amount of disk space needed (~90 MB compressed -> ~3 GB uncompressed... per 
