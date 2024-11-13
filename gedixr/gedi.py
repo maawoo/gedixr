@@ -34,15 +34,21 @@ DEFAULT_VARIABLES = {'L2A': [('rh98', 'rh98')],
 _DEFAULT_BASE = {'L2A': [('shot', 'shot_number'),
                          ('latitude', 'lat_lowestmode'),
                          ('longitude', 'lon_lowestmode'),
+                         ('elev', 'elev_lowestmode'),
+                         ('elev_dem_tdx', 'digital_elevation_model'),
                          ('degrade_flag', 'degrade_flag'),
                          ('quality_flag', 'quality_flag'),
-                         ('sensitivity', 'sensitivity')],
+                         ('sensitivity', 'sensitivity'),
+                         ('num_detectedmodes', 'num_detectedmodes')],
                  'L2B': [('shot', 'shot_number'),
                          ('latitude', 'geolocation/lat_lowestmode'),
                          ('longitude', 'geolocation/lon_lowestmode'),
+                         ('elev', 'geolocation/elev_lowestmode'),
+                         ('elev_dem_tdx', 'geolocation/digital_elevation_model'),
                          ('degrade_flag', 'geolocation/degrade_flag'),
                          ('quality_flag', 'l2b_quality_flag'),
-                         ('sensitivity', 'sensitivity')]
+                         ('sensitivity', 'sensitivity'),
+                         ('num_detectedmodes', 'num_detectedmodes')]
                  }
 
 N_ERRORS = 0
@@ -54,7 +60,8 @@ def extract_data(directory: str | Path,
                  variables: Optional[list[tuple[str, str]]] = None,
                  beams: Optional[str| list[str]] = None,
                  filter_month: Optional[tuple[int, int]] = None,
-                 subset_vector: Optional[str | Path | list[str | Path]] = None
+                 subset_vector: Optional[str | Path | list[str | Path]] = None,
+                 apply_quality_filter: bool = True
                  ) -> (GeoDataFrame | dict[str, dict[str, GeoDataFrame | Polygon]]):
     """
     Extracts data from GEDI L2A or L2B files in HDF5 format using the following
@@ -63,7 +70,7 @@ def extract_data(directory: str | Path,
     (1) Search a root directory recursively for GEDI L2A or L2B HDF5 files
     (2) OPTIONAL: Filter files by month of acquisition
     (3) Extract data from each file for specified beams and variables into a Dataframe
-    (4) Filter out shots of poor quality
+    (4) OPTIONAL: Filter out shots of poor quality
     (5) Convert Dataframe to GeoDataFrame including geometry column
     (6) OPTIONAL: Subset shots spatially using intersection via provided vector
         file or list of vector files
@@ -103,6 +110,11 @@ def extract_data(directory: str | Path,
         Note that the basename of each vector file will be used in the output
         names, so it is recommended to give those files reasonable names
         beforehand!
+    apply_quality_filter: bool, optional
+        Apply a basic quality filter to the GEDI data? Default is True. This basic
+        filtering strategy will filter out shots with quality_flag != 1,
+        degrade_flag != 0, num_detectedmodes > 1, and difference between detected
+        elevation and DEM elevation < 100 m.
     
     Returns
     -------
@@ -178,9 +190,8 @@ def extract_data(directory: str | Path,
                                              log_handler=log_handler))
                 
                 # (4) Filter by quality flags
-                df = filter_quality(df=df,
-                                    log_handler=log_handler,
-                                    gedi_path=fp)
+                if apply_quality_filter:
+                    df = filter_quality(df=df, log_handler=log_handler, gedi_path=fp)
                 
                 # (5) Convert to GeoDataFrame, set 'Shot Number' as index and convert
                 # acquisition time to datetime
