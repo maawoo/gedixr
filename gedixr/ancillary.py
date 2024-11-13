@@ -141,7 +141,8 @@ def prepare_vec(vec: Path | list[Path]) -> dict[str, dict[str, Polygon | None]]:
     return out
 
 
-def to_pathlib(x: str | list[str]) -> Path | list[Path]:
+def to_pathlib(x: str | list[str] | list[Path]
+               ) -> Path | list[Path]:
     """
     Convert string(s) to Path object(s).
     
