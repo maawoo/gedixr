@@ -357,9 +357,7 @@ def filter_quality(df: DataFrame,
                    ) -> DataFrame:
     """
     Filters a given pandas.Dataframe containing GEDI data using its quality
-    flags. The values used here have been adopted from the official GEDI L2A/L2B
-    tutorials:
-    https://git.earthdata.nasa.gov/projects/LPDUR/repos/gedi-v2-tutorials/browse
+    flags.
     
     Parameters
     ----------
@@ -376,13 +374,14 @@ def filter_quality(df: DataFrame,
         The quality-filtered dataframe.
     """
     len_before = len(df)
-    
-    df = df.where(df['quality_flag'].ne(0)).dropna()
-    df = df.where(df['degrade_flag'] < 1).dropna()
-    df = df.where(df['sensitivity'] > 0.9).dropna()
-    df = df.where(abs(df['elev'] - df['elev_dem']) < 50).dropna()
-    df = df.drop(columns=['quality_flag', 'degrade_flag', 'sensitivity', 'elev_dem'])
-    
+    cond = (
+            (df['quality_flag'].eq(1)) &  # already includes 'sensitivity' > 0.9
+            (df['degrade_flag'].eq(0)) &
+            (df['num_detectedmodes'].ge(1)) &
+            (abs(df['elev'] - df['elev_dem_tdx']) < 100)
+    )
+    df = df.where(cond).dropna()
+    df = df.drop(columns=['quality_flag', 'degrade_flag'])
     len_after = len_before - len(df)
     filt_perc = round((len_after / len_before) * 100, 2)
     msg = f"{str(len_after).zfill(5)}/{str(len_before).zfill(5)} " \
