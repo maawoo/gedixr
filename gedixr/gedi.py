@@ -312,6 +312,10 @@ def _from_file(gedi: h5py.File,
     """
     out = {}
     for beam in beams:
+        if beam not in list(gedi.keys()):
+            anc.log(handler=log_handler, mode='info', file=gedi_fp.name,
+                    msg=f"{beam} not found in file")
+            continue
         try:
             for k, v in layers:
                 if v.startswith('rh') and gedi_product == 'L2A':
@@ -329,8 +333,8 @@ def _from_file(gedi: h5py.File,
                         out[k] = []
                     out[k].extend(gedi[f'{beam}/{v}'][()])
         except Exception as msg:
-            anc.log(handler=log_handler, mode='exception', file=gedi_fp.name,
-                    msg=str(msg))
+            anc.log(handler=log_handler, mode='exception',
+                    file=f"{gedi_fp.name} ({beam})", msg=str(msg))
             _error_counter()
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
