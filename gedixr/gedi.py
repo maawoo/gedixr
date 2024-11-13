@@ -225,17 +225,20 @@ def extract_data(directory: str | Path,
                 _error_counter()
         
         # (7) & (8)
+        flt = "flt0"
+        if apply_quality_filter:
+            flt = "flt1"
         out_dir = directory / 'extracted'
         out_dir.mkdir(exist_ok=True)
         if subset_vector is not None:
             for vec_base, _dict in out_dict.items():
                 if _dict['gdf'] is not None:
-                    out_name = f'{now}__{gedi_product}__subset_{vec_base}.parquet'
+                    out_name = f'{now}__{gedi_product}_{flt}__subset_{vec_base}.parquet'
                     _dict['gdf'].to_parquet(out_dir / out_name)
             return out_dict
         else:
             out = pd.concat(gdf_list_no_spatial_subset)
-            out_name = f'{now}__{gedi_product}.parquet'
+            out_name = f'{now}__{gedi_product}_{flt}.parquet'
             out.to_parquet(out_dir / out_name)
             return out
     except Exception as msg:
