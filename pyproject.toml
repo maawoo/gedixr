@@ -7,10 +7,10 @@ authors = [
 description = "GEDI L2A/L2B -> GeoParquet & GeoDataFrame/Xarray"
 readme = "README.md"
 license = {text = "MIT License"}
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.13"
 dependencies = [
-    "geopandas>=0.14",
-    "h5netcdf",
+    "geopandas>=1.0.0",
+    "h5py",
     "tqdm",
     "geocube",
     "pyarrow"
