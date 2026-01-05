@@ -20,5 +20,8 @@ dependencies = [
 Repository = "https://github.com/maawoo/gedixr"
 
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
