@@ -9,4 +9,6 @@ dependencies:
   - geocube
   - pyarrow
   - typer
-  
+  - mkdocs
+  - mkdocs-material
+  - mkdocstrings-python
