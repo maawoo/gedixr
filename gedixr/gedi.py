@@ -19,9 +19,6 @@ import gedixr.ancillary as anc
 import gedixr.constants as con
 
 
-N_ERRORS = 0
-
-
 def extract_data(directory: str | Path,
                  gedi_product: str,
                  temp_unpack_zip: bool = False,
@@ -194,20 +191,18 @@ def extract_data(directory: str | Path,
                 anc.error_tracker.increment()
         
         # (7) & (8)
-        flt = "flt0"
-        if apply_quality_filter:
-            flt = "flt1"
+        flt = 1 if apply_quality_filter else 0
         out_dir = directory / 'extracted'
         out_dir.mkdir(exist_ok=True)
         if subset_vector is not None:
             for vec_base, _dict in out_dict.items():
                 if _dict['gdf'] is not None:
-                    out_name = f'{now}__{gedi_product}_{flt}__subset_{vec_base}.parquet'
+                    out_name = f'{now}_{gedi_product}_{flt}_{vec_base}.parquet'
                     _dict['gdf'].to_parquet(out_dir / out_name)
             return out_dict
         else:
             out = pd.concat(gdf_list_no_spatial_subset)
-            out_name = f'{now}__{gedi_product}_{flt}.parquet'
+            out_name = f'{now}_{gedi_product}_{flt}.parquet'
             out.to_parquet(out_dir / out_name)
             return out
     except Exception as msg:
