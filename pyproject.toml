@@ -22,13 +22,17 @@ dependencies = [
     "h5py",
     "tqdm",
     "geocube",
-    "pyarrow"
+    "pyarrow",
+    "typer"
 ]
 
 [project.urls]
 Source = "https://github.com/maawoo/gedixr"
 Issues = "https://github.com/maawoo/gedixr/issues"
 Documentation = "https://github.com/maawoo/gedixr#readme"
+
+[project.scripts]
+gedixr = "gedixr.cli:main"
 
 [build-system]
 requires = ["hatchling"]
