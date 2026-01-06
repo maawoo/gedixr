@@ -16,40 +16,8 @@ from geopandas import GeoDataFrame
 from shapely import Polygon
 
 import gedixr.ancillary as anc
+import gedixr.constants as con
 
-ALLOWED_PRODUCTS = ['L2A', 'L2B']
-PATTERN_L2A = '*GEDI02_A_*.h5'
-PATTERN_L2B = '*GEDI02_B_*.h5'
-
-FULL_POWER_BEAMS = ['BEAM0101', 'BEAM0110', 'BEAM1000', 'BEAM1011']
-COVERAGE_BEAMS = ['BEAM0000', 'BEAM0001', 'BEAM0010', 'BEAM0011']
-
-DEFAULT_VARIABLES = {'L2A': [('rh98', 'rh98')],
-                     'L2B': [('tcc', 'cover'),
-                             ('fhd', 'fhd_normal'),
-                             ('pai', 'pai'),
-                             ('rh100', 'rh100')]
-                     }
-
-_DEFAULT_BASE = {'L2A': [('shot', 'shot_number'),
-                         ('latitude', 'lat_lowestmode'),
-                         ('longitude', 'lon_lowestmode'),
-                         ('elev', 'elev_lowestmode'),
-                         ('elev_dem_tdx', 'digital_elevation_model'),
-                         ('degrade_flag', 'degrade_flag'),
-                         ('quality_flag', 'quality_flag'),
-                         ('sensitivity', 'sensitivity'),
-                         ('num_detectedmodes', 'num_detectedmodes')],
-                 'L2B': [('shot', 'shot_number'),
-                         ('latitude', 'geolocation/lat_lowestmode'),
-                         ('longitude', 'geolocation/lon_lowestmode'),
-                         ('elev', 'geolocation/elev_lowestmode'),
-                         ('elev_dem_tdx', 'geolocation/digital_elevation_model'),
-                         ('degrade_flag', 'geolocation/degrade_flag'),
-                         ('quality_flag', 'l2b_quality_flag'),
-                         ('sensitivity', 'sensitivity'),
-                         ('num_detectedmodes', 'num_detectedmodes')]
-                 }
 
 N_ERRORS = 0
 
@@ -122,9 +90,9 @@ def extract_data(directory: str | Path,
         In case of an output dictionary, these are the expected key, value pairs:
             {'<Vector Basename>': {'geo': Polygon, 'gdf': GeoDataFrame}}
     """
-    if gedi_product not in ALLOWED_PRODUCTS:
+    if gedi_product not in con.ALLOWED_PRODUCTS:
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of "
-                           f"{ALLOWED_PRODUCTS}; got {gedi_product} instead")
+                           f"{con.ALLOWED_PRODUCTS}; got {gedi_product} instead")
     
     directory = anc.to_pathlib(x=directory)
     subset_vector = anc.to_pathlib(x=subset_vector) if \
@@ -132,24 +100,24 @@ def extract_data(directory: str | Path,
     log_handler, now = anc.set_logging(directory, gedi_product)
     out_dict = None
     if gedi_product == 'L2A':
-        variables = DEFAULT_VARIABLES['L2A'] if variables is None else variables
-        pattern = PATTERN_L2A
+        variables = con.DEFAULT_VARIABLES['L2A'] if variables is None else variables
+        pattern = con.PATTERN_L2A
     else:
-        variables = DEFAULT_VARIABLES['L2B'] if variables is None else variables
-        pattern = PATTERN_L2B
+        variables = con.DEFAULT_VARIABLES['L2B'] if variables is None else variables
+        pattern = con.PATTERN_L2B
     if beams is None:
-        beams = FULL_POWER_BEAMS + COVERAGE_BEAMS
+        beams = con.FULL_POWER_BEAMS + con.COVERAGE_BEAMS
     elif beams == 'full':
-        beams = FULL_POWER_BEAMS
+        beams = con.FULL_POWER_BEAMS
     elif beams == 'coverage':
-        beams = COVERAGE_BEAMS
+        beams = con.COVERAGE_BEAMS
     else:
         beams = beams
     if filter_month is None:
         filter_month = (1, 12)
     if subset_vector is not None:
         out_dict = anc.prepare_vec(vec=subset_vector)
-    layers = _DEFAULT_BASE[gedi_product] + variables
+    layers = con.DEFAULT_BASE[gedi_product] + variables
     
     tmp_dirs = None
     try:
