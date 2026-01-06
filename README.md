@@ -29,14 +29,49 @@ pip install git+https://github.com/maawoo/gedixr.git@v0.4.0
 ```
 
 ## Usage
+
 After downloading GEDI L2A/L2B v002 files from [NASA Earthdata Search](https://search.earthdata.nasa.gov/search?q=gedi+v002)<sup>1</sup>, 
 you will end up with a bunch of zipped HDF5 files. After unzipping<sup>2</sup> them, 
-you can use the `extract_data` function to recursively find all relevant files in 
-a directory and extract biophysical variables (see [subsection](#extracted-variables) 
-for defaults) for each shot to further work with them as `geopandas.GeoDataFrame` 
-in Python or use the created vector file in your favorite GIS software.
+you can extract biophysical variables (see [here](#extracted-variables) 
+for defaults) for each shot using either the command-line interface or the Python API. 
+The extracted data will be saved as GeoParquet files and can be further worked with 
+as `geopandas.GeoDataFrame` in Python or used in your favorite GIS software.
 
-### Basic example
+### Command Line Interface (CLI)
+
+After installation, you can use the `gedixr` command-line tool:
+
+```bash
+# Extract L2B data from a directory (with default quality filtering)
+gedixr extract /path/to/gedi/data --product L2B
+
+# Extract L2A data without quality filtering
+gedixr extract /path/to/gedi/data -p L2A --no-quality-filter
+
+# Extract only from power beams
+gedixr extract /path/to/gedi/data -b full
+
+# Filter by month range (e.g., June to August)
+gedixr extract /path/to/gedi/data --filter-month-min 6 --filter-month-max 8
+
+# Subset to specific areas (creates separate output files per area)
+gedixr extract /path/to/gedi/data -v aoi_1.geojson -v aoi_2.geojson
+
+# Extract from zip files without permanently unpacking them
+gedixr extract /path/to/gedi/data --temp-unpack-zip
+
+# Show version
+gedixr version
+```
+
+Use `gedixr extract --help` for all available options.
+
+### Python API
+
+You can import the `extract_data` function to use the extraction functionality in
+your Python scripts or Jupyter notebooks.
+
+#### Basic example
 The NASA Earthdata Search platform mentioned above allows you to already subset
 the GEDI data to your area of interest during the download process. This saves 
 you space on disk and the extraction process is quite straightforward in this 
@@ -74,7 +109,7 @@ from gedixr.xr import load_to_gdf
 gdf = load_to_gdf(l2a="path/to/extracted_l2a.parquet")
 ```
 
-### Custom subsetting
+#### Custom subsetting
 If your GEDI data is not subsetted (i.e., each file covering an entire orbit), 
 you can provide a vector file (e.g. GeoJSON, GeoPackage, etc.) to extract 
 metrics for your area of interest. You can also provide a list of vector files 
@@ -101,7 +136,7 @@ aoi_1_gdf = l2a_dict['aoi_1']['gdf']
 aoi_2_gdf = l2a_dict['aoi_2']['gdf']
 ```
 
-### Extract from specific beams 
+#### Extract from specific beams 
 The `beams` parameter can be used to specify which beams to extract data from. 
 By default, data will be extracted from all beams (full power and coverage). You 
 can use `beams='full'` (or `'coverage'`) to only extract from one or the other. 
@@ -128,23 +163,24 @@ product: [L2A](https://lpdaac.usgs.gov/products/gedi02_av002/) and [L2B](https:/
 
 ### Quality filtering
 The extraction process will automatically apply quality filtering based on the 
-`quality_flag`, `degrade_flag` and `sensitivity` variables using the following
-default values:
+following conditions:
 - `quality_flag` == 1 
 - `degrade_flag` == 0
 - `num_detectedmodes` > 0
-- abs(`ele_lowestmode` - `digital_elevation_model`) < 100
+- abs(`elev` - `elev_dem_tdx`) < 100
 
 Please note that `quality_flag` already includes filtering to a `sensitivity` 
 range of 0.9 - 1.0. 
 
 If you want to apply a different quality filtering strategy, you can disable the
-default filtering by setting `apply_quality_filter=False` and apply your own filtering
-after the extraction process.
+default filtering by setting `apply_quality_filter=False` (Python API) or using 
+`--no-quality-filter` (CLI) and apply your own filtering after the extraction process.
 
 ## Notes
 <sup>1</sup>See [#1](https://github.com/maawoo/gedixr/issues/1) for a related issue regarding the download of GEDI data.
 
 <sup>2</sup>The products need to be unzipped first which can seriously increase 
 the amount of disk space needed (~90 MB compressed -> ~3 GB uncompressed... per 
-file!). A solution is work in progress and being tracked in [#2](https://github.com/maawoo/gedixr/issues/2). 
+file!). Alternatively, you can use the `temp_unpack_zip=True` parameter (Python API) 
+or `--temp-unpack-zip` flag (CLI) to extract from zip files using temporary directories, 
+though this may be slower. 
