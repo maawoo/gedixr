@@ -7,6 +7,19 @@ from typing import Optional
 from shapely import Polygon
 
 
+class ErrorTracker:
+    def __init__(self):
+        self.count = 0
+    
+    def reset(self):
+        self.count = 0
+    
+    def increment(self):
+        self.count += 1
+
+error_tracker = ErrorTracker()
+
+
 def set_logging(directory: Path,
                 gedi_product: str
                 ) -> (logging.Logger, str):

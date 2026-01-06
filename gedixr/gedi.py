@@ -130,6 +130,7 @@ def extract_data(directory: str | Path,
     subset_vector = anc.to_pathlib(x=subset_vector) if \
         (subset_vector is not None) else None
     log_handler, now = anc.set_logging(directory, gedi_product)
+    anc.error_tracker.reset() 
     out_dict = None
     if gedi_product == 'L2A':
         variables = DEFAULT_VARIABLES['L2A'] if variables is None else variables
@@ -222,7 +223,7 @@ def extract_data(directory: str | Path,
             except Exception as msg:
                 anc.log(handler=log_handler, mode='exception', file=fp.name,
                         msg=str(msg))
-                _error_counter()
+                anc.error_tracker.increment()
         
         # (7) & (8)
         flt = "flt0"
@@ -243,18 +244,14 @@ def extract_data(directory: str | Path,
             return out
     except Exception as msg:
         anc.log(handler=log_handler, mode='exception', msg=str(msg))
-        _error_counter()
+        anc.error_tracker.increment()
     finally:
         _cleanup_tmp_dirs(tmp_dirs)
         anc.close_logging(log_handler=log_handler)
-        if N_ERRORS > 0:
-            print(f"WARNING: {N_ERRORS} errors occurred during the extraction "
+        error_count = anc.error_tracker.count
+        if error_count > 0:
+            print(f"WARNING: {error_count} errors occurred during the extraction "
                   f"process. Please check the log file!")
-
-
-def _error_counter():
-    global N_ERRORS
-    N_ERRORS += 1
 
 
 def _date_from_gedi_file(gedi_path: Path) -> datetime:
@@ -349,7 +346,7 @@ def _from_file(gedi: h5py.File,
         except Exception as msg:
             anc.log(handler=log_handler, mode='exception',
                     file=f"{gedi_fp.name} ({beam})", msg=str(msg))
-            _error_counter()
+            anc.error_tracker.increment()
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
 
