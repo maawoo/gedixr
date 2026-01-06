@@ -136,6 +136,8 @@ def extract_data(directory: str | Path,
         for i, fp in enumerate(tqdm(filepaths)):
             # (2) Filter by month of acquisition
             date = _date_from_gedi_file(gedi_path=fp)
+            if filter_month[0] > filter_month[1]:
+                filter_month = (filter_month[1], filter_month[0])
             if not filter_month[0] <= date.month <= filter_month[1]:
                 msg = (f"Time of acquisition outside of filter range: "
                        f"month_min={filter_month[0]}, "
