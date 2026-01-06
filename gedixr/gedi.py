@@ -157,7 +157,7 @@ def extract_data(directory: str | Path,
                 
                 # (4) Filter by quality flags
                 if apply_quality_filter:
-                    df = filter_quality(df=df, log_handler=log_handler, gedi_path=fp)
+                    df = _filter_quality(df=df, log_handler=log_handler, gedi_path=fp)
                 
                 # (5) Convert to GeoDataFrame, set 'Shot Number' as index and convert
                 # acquisition time to datetime
@@ -314,13 +314,17 @@ def _from_file(gedi: h5py.File,
     return out
 
 
-def filter_quality(df: DataFrame,
+def _filter_quality(df: DataFrame,
                    log_handler: Logger,
                    gedi_path: Path
                    ) -> DataFrame:
     """
-    Filters a given pandas.Dataframe containing GEDI data using its quality
-    flags.
+    Filters a given pandas.Dataframe containing GEDI data using the following 
+    conditions:
+    - quality_flag == 1
+    - degrade_flag == 0
+    - num_detectedmodes > 0
+    - abs(elev - elev_dem_tdx) < 100
     
     Parameters
     ----------
@@ -337,13 +341,9 @@ def filter_quality(df: DataFrame,
         The quality-filtered dataframe.
     """
     len_before = len(df)
-    cond = (
-            (df['quality_flag'].eq(1)) &  # already includes 'sensitivity' > 0.9
-            (df['degrade_flag'].eq(0)) &
-            (df['num_detectedmodes'].ge(1)) &
-            (abs(df['elev'] - df['elev_dem_tdx']) < 100)
-    )
-    df = df.where(cond).dropna()
+    cond = "quality_flag == 1 & degrade_flag == 0 & num_detectedmodes > 0 & " \
+           "abs(elev - elev_dem_tdx) < 100"
+    df = df.query(cond)
     df = df.drop(columns=['quality_flag', 'degrade_flag'])
     len_after = len_before - len(df)
     filt_perc = round((len_after / len_before) * 100, 2)
