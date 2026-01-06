@@ -44,7 +44,7 @@ def set_logging(directory: Path,
     log_local = logging.getLogger(__name__)
     log_local.setLevel(logging.DEBUG)
     
-    log_file = directory.joinpath('log', f"{now}__{gedi_product}.log")
+    log_file = directory.joinpath('log', f"{now}_{gedi_product}.log")
     log_file.parent.mkdir(exist_ok=True)
     
     fh = logging.FileHandler(filename=log_file, mode='a')
