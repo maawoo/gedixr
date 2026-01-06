@@ -2,23 +2,37 @@
 name = "gedixr"
 version = "0.4.0"
 authors = [
-  {name="Marco Wolsza", email="marco.wolsza@uni-jena.de" },
+    {name="Marco Wolsza", email="marco.wolsza@uni-jena.de" },
 ]
 description = "GEDI L2A/L2B -> GeoParquet & GeoDataFrame/Xarray"
+keywords = ["geospatial", "earth-observation", "gedi", "lidar"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: GIS",
+]
 readme = "README.md"
-license = {text = "MIT License"}
-requires-python = ">=3.10"
+license = "MIT"
+requires-python = ">=3.10,<3.13"
 dependencies = [
-    "geopandas>=0.14",
-    "h5netcdf",
+    "geopandas>=1.0.0",
+    "h5py",
     "tqdm",
     "geocube",
     "pyarrow"
 ]
 
 [project.urls]
-Repository = "https://github.com/maawoo/gedixr"
+Source = "https://github.com/maawoo/gedixr"
+Issues = "https://github.com/maawoo/gedixr/issues"
+Documentation = "https://github.com/maawoo/gedixr#readme"
 
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
