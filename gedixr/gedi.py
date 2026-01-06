@@ -326,7 +326,7 @@ def _from_file(gedi: h5py.File,
     """
     out = {}
     for beam in beams:
-        if beam not in list(gedi.keys()):
+        if beam not in list(gedi.keys()) or 'shot_number' not in gedi[beam].keys():
             anc.log(handler=log_handler, mode='info', file=gedi_fp.name,
                     msg=f"{beam} not found in file")
             continue
