@@ -181,7 +181,8 @@ def extract_data(directory: str | Path,
                                 out_dict[k]['gdf'] = gdf_cat
                         del gdf_sub
                 else:
-                    gdf_list_no_spatial_subset.append(gdf)
+                    if not gdf.empty:
+                        gdf_list_no_spatial_subset.append(gdf)
                 
                 gedi.close()
                 del df, gdf
@@ -201,9 +202,16 @@ def extract_data(directory: str | Path,
                     _dict['gdf'].to_parquet(out_dir / out_name)
             return out_dict
         else:
-            out = pd.concat(gdf_list_no_spatial_subset)
-            out_name = f'{now}_{gedi_product}_{flt}.parquet'
-            out.to_parquet(out_dir / out_name)
+            # make sure that gdf's in list are not all empty 
+            if gdf_list_no_spatial_subset:
+                out = pd.concat(gdf_list_no_spatial_subset)
+                out_name = f'{now}_{gedi_product}_{flt}.parquet'
+                out.to_parquet(out_dir / out_name)
+            else:
+                anc.log(handler=log_handler, mode='info',
+                        msg="No GEDI shots passed the filtering criteria; "
+                            "no output file created.")
+                out = GeoDataFrame()
             return out
     except Exception as msg:
         anc.log(handler=log_handler, mode='exception', msg=str(msg))
