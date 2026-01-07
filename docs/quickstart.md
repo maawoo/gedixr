@@ -210,7 +210,7 @@ Extract data from specific beam types:
 
     ```bash
     # Only power beams
-    gedixr extract /path/to/data -b full
+    gedixr extract /path/to/data -b power
     
     # Only coverage beams
     gedixr extract /path/to/data -b coverage
@@ -223,7 +223,7 @@ Extract data from specific beam types:
 
     ```python
     # Only power beams
-    gdf = extract_data(directory="path/to/data", beams='full')
+    gdf = extract_data(directory="path/to/data", beams='power')
     
     # Only coverage beams
     gdf = extract_data(directory="path/to/data", beams='coverage')
