@@ -53,7 +53,7 @@ def extract_data(directory: str | Path,
         retrieved by `gedixr.gedi.DEFAULT_VARIABLES['<gedi_product>']`.
     beams: str or list of str, optional
         Which GEDI beams to extract values from? Defaults to all beams (power and
-        coverage beams). Use `'full'` or `'coverage'` for power or coverage beams,
+        coverage beams). Use `'power'` or `'coverage'` for power or coverage beams,
         respectively. You can also provide a list of beam names, e.g.:
         `['BEAM0101', 'BEAM0110']`.
     filter_month: tuple(int), optional
@@ -95,9 +95,9 @@ def extract_data(directory: str | Path,
         variables = con.DEFAULT_VARIABLES['L2B'] if variables is None else variables
         pattern = con.PATTERN_L2B
     if beams is None:
-        beams = con.FULL_POWER_BEAMS + con.COVERAGE_BEAMS
-    elif beams == 'full':
-        beams = con.FULL_POWER_BEAMS
+        beams = con.POWER_BEAMS + con.COVERAGE_BEAMS
+    elif beams == 'power':
+        beams = con.POWER_BEAMS
     elif beams == 'coverage':
         beams = con.COVERAGE_BEAMS
     else:

@@ -35,7 +35,7 @@ def extract(
         Optional[str],
         typer.Option(
             "--beams", "-b",
-            help="Which beams to extract: 'full' (power beams), 'coverage' (coverage beams), or comma-separated beam names (e.g., 'BEAM0101,BEAM0110'). Default: all beams",
+            help="Which beams to extract: 'power' (power beams), 'coverage' (coverage beams), or comma-separated beam names (e.g., 'BEAM0101,BEAM0110'). Default: all beams",
         ),
     ] = None,
     filter_month_min: Annotated[
@@ -83,9 +83,9 @@ def extract(
     """
     # Process beams parameter
     beams_list = None
-    if beams is not None and beams not in ['full', 'coverage']:
+    if beams is not None and beams not in ['power', 'coverage']:
         beams_list = [b.strip() for b in beams.split(',')]
-    elif beams in ['full', 'coverage']:
+    elif beams in ['power', 'coverage']:
         beams_list = beams
     
     # Process filter_month
