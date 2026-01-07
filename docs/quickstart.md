@@ -237,5 +237,21 @@ Extract data from specific beam types:
 
 ### Custom Variables
 
-Please refer to [Variables](variables.md) for information on default variables extracted
-for each product as well as instructions on how to specify custom variables if needed.
+Using the Python API, you can specify custom variables to extract using the `variables`
+parameter when calling the `extract_data` function. See [Variables](variables.md) for 
+more details.
+
+=== "Python"
+
+    ```python
+    variables = [
+        ('rh50', 'rh50'),
+        ('rh75', 'rh75'),
+        ('treecover', 'land_cover_data/landsat_treecover')
+    ]
+    gdf = extract_data(
+        directory="/path/to/data",
+        gedi_product='L2A',
+        variables=variables
+    )
+    ```
