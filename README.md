@@ -1,15 +1,15 @@
 # gedixr
 
-Extract the variables you need from [GEDI L2A/L2B](https://gedi.umd.edu/) files 
+Extract the variables you need from [GEDI L2A/L2B](https://gedi.umd.edu/) HDF5 files 
 and start working with them as a `geopandas.GeoDataFrame` or `xarray.Dataset` in 
 no time!
 
 ## Features
 
-- **Command-line interface** for quick data extraction
+- **Command-line interface** for quick extraction from a directory of HDF5 files
 - **Logging** to monitor extraction progress and issues
 - **Quality filtering** built-in with the option to skip and apply custom filters later
-- **Spatial subsetting** using vector files (GeoJSON, GeoPackage, etc.)
+- **Spatial subsetting** using common vector file formats (GeoJSON, GeoPackage, etc.)
 - **GeoParquet output** for efficient storage and processing
 
 ## Quick Start
@@ -25,11 +25,11 @@ pip install git+https://github.com/maawoo/gedixr.git@v0.4.0
 ### CLI Usage
 
 ```bash
-# Extract L2B data
+# Extract default L2B variables
 gedixr extract /path/to/gedi/data --product L2B
 
-# Extract with spatial subset
-gedixr extract /path/to/gedi/data -v my_area.geojson
+# Extract default L2A variables with spatial subset
+gedixr extract /path/to/gedi/data -p L2A -v my_area.geojson
 ```
 
 ### Python API
@@ -38,7 +38,7 @@ gedixr extract /path/to/gedi/data -v my_area.geojson
 from gedixr.gedi import extract_data
 from gedixr.xr import merge_gdf
 
-# Extract L2A and L2B data
+# Extract default L2A and L2B variables
 gdf_l2a = extract_data(directory="path/to/data", gedi_product='L2A')
 gdf_l2b = extract_data(directory="path/to/data", gedi_product='L2B')
 

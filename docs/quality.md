@@ -24,7 +24,7 @@ By default, shots are filtered based on the following conditions:
 
 ### Filter Statistics in Logs
 
-During extraction, gedixr logs the number and percentage of shots that were filtered 
+During extraction, `gedixr` logs the number and percentage of shots that were filtered 
 out if quality filtering is enabled. Example log entry:
 
 ```

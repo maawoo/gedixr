@@ -13,11 +13,10 @@ structure of your choice. This would be the safe approach. Alternatively, you ca
 leave them zipped and try processing them directly with gedixr (see 
 [Zip File Handling](#zip-file-handling) for information and warnings).
 
-
 !!! tip "Spatial Subsetting"
-    NASA Earthdata Search allows you to already subset GEDI data to your area of 
-    interest during download, which can significantly reduce the amount of data you need 
-    to process. You could then use `gedixr`'s spatial subsetting for further refinement 
+    NASA Earthdata Search allows you to already subset GEDI data to an area of interest 
+    during download, which can significantly reduce the amount of data you need to 
+    process. You could then use `gedixr`'s spatial subsetting for further refinement 
     if needed (e.g., splitting into multiple study areas).
 
 ## Basic Workflow
@@ -50,7 +49,7 @@ input directory and log the extraction process in the `log/` subdirectory
     )
     ```
 
-#### (Optional) Check extraction logs
+#### Optional: Check extraction logs
 
 The extraction process logs errors and warnings. Check the `log/` subdirectory in your 
 input directory for detailed information if issues occur.
@@ -82,7 +81,7 @@ from gedixr.xr import merge_gdf
 gdf_l2a = extract_data(directory="path/to/data", gedi_product='L2A')
 gdf_l2b = extract_data(directory="path/to/data", gedi_product='L2B')
 
-# Merge them
+# Merge them (using inner join)
 gdf_merged = merge_gdf(l2a=gdf_l2a, l2b=gdf_l2b)
 ```
 
@@ -174,8 +173,12 @@ Extract data for specific areas using vector files:
     area2_gdf = result_dict['area2']['gdf']
     ```
 
+The output GeoParquet file(s) will be saved in the `extracted/` subdirectory with the
+vector file basename included in the filename (e.g., 
+`YYYYMMDDHHMMSS_L2B_1_study_area.parquet` for the single area example above).
+
 When using multiple vector files, the output dictionary will contain separate entries
-for each area with the following structure:
+for each vector file with the following structure:
 
 ```python
 {'<Vector Basename>': {'geo': Polygon, 'gdf': GeoDataFrame}}
