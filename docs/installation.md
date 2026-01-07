@@ -27,7 +27,7 @@ pip install git+https://github.com/maawoo/gedixr.git
 See the [Tags](https://github.com/maawoo/gedixr/tags) section of the repository for available versions:
 
 ```bash
-conda env create --file https://raw.githubusercontent.com/maawoo/gedixr/v0.4.0/environment.yml
+conda env create --file https://raw.githubusercontent.com/maawoo/gedixr/v0.5.0/environment.yml
 conda activate gedixr_env
-pip install git+https://github.com/maawoo/gedixr.git@v0.4.0
+pip install git+https://github.com/maawoo/gedixr.git@v0.5.0
 ```
