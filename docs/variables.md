@@ -45,27 +45,35 @@ For comprehensive overviews of all available layers in each product:
 
 ## Custom Variables
 You can specify custom variables to extract using the `variables` parameter when calling
-the `extract_data` function via the Python API. This option is not available in the CLI.
+the `extract_data` function via the Python API. This option is currently not available 
+in the CLI.
 
 The `variables` parameter accepts a list of tuples, where each tuple contains the 
-desired variable name and the corresponding, exact GEDI layer name (as listed in the
-tables above or in the product information links). For example: 
+desired variable name and the corresponding, exact (!) GEDI layer name after the beam 
+prefix. For example:
 
 ```python
 variables = [
-    ('omega', 'omega'),
+    ('rh50', 'rh50'),
+    ('rh75', 'rh75'),
+    ('solar_azimuth', 'solar_azimuth'),
+    ('treecover', 'land_cover_data/landsat_treecover')
 ]
 gdf = extract_data(
     directory="/path/to/data",
-    gedi_product='L2B',
+    gedi_product='L2A',
     variables=variables
 )
 ```
-This will extract the `omega` variable (Foliage clumping index) from GEDI L2B data 
-in addition to the base variables.
+This will extract the `rh50`, `rh75`, `solar_azimuth`, and `landsat_treecover` variables
+in addition to the default base variables. As you can see, for nested variables (like
+`landsat_treecover`), you need to provide the full path within the HDF5 structure after
+the beam prefix (e.g., `BEAM0001/land_cover_data/landsat_treecover` as it appears in 
+the overview linked above). In the example, the `landsat_treecover` variable will appear
+in the output GeoDataFrame with the column name `treecover`.
 
 !!! warning "Limitations"
     GEDI L2A and L2B products contain a looot of variables. Not all of them can be 
-    directly extracted like this. Particularly, variables that are arrays (e.g.,
-    waveform data) or height bins (e.g., vertical profile metrics) are not supported for
-    extraction via the `variables` parameter at this time. Contributions are welcome! 😊
+    directly extracted like this. Particularly, variables that are stored as arrays 
+    (e.g., waveform data) are not supported for extraction via the `variables` parameter 
+    at this time. Contributions are welcome! 😊
