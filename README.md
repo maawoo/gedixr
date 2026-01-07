@@ -48,8 +48,7 @@ gdf = merge_gdf(l2a=gdf_l2a, l2b=gdf_l2b)
 
 ## Documentation
 
-Full documentation is available at: 
-
+Full documentation is available at: https://maawoo.github.io/gedixr
 
 ## License
 
