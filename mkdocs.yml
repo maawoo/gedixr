@@ -10,14 +10,14 @@ theme:
   name: material
   palette:
     - scheme: default
-      primary: green
-      accent: light green
+      primary: teal
+      accent: orange
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: green
-      accent: light green
+      primary: teal
+      accent: orange
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
