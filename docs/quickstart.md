@@ -7,11 +7,7 @@ This guide will help you get started with gedixr in just a few minutes.
 Before you begin, you'll need GEDI L2A/L2B v002 files. You can download them from 
 [NASA Earthdata Search](https://search.earthdata.nasa.gov/search?q=gedi+v002).
 
-These are usually distributed as zipped HDF5 files that you can unzip (e.g., using
-`unzip` on the command line for batched decompression) and store them in a directory 
-structure of your choice. This would be the safe approach. Alternatively, you can also 
-leave them zipped and try processing them directly with gedixr (see 
-[Zip File Handling](#zip-file-handling) for information and warnings).
+If Earthdata Search provided you with zipped files, please unzip them before proceeding.
 
 !!! tip "Spatial Subsetting"
     NASA Earthdata Search allows you to already subset GEDI data to an area of interest 
@@ -236,47 +232,6 @@ Extract data from specific beam types:
     gdf = extract_data(
         directory="path/to/data",
         beams=['BEAM0101', 'BEAM0110']
-    )
-    ```
-
-### Zip File Handling
-
-If your GEDI data files are stored as zip archives, you can use temporary unpacking to 
-process them without permanently extracting them. 
-
-!!! warning "Limitations"
-    Using temporary unpacking creates temporary directories for each zip file. 
-    Interruptions may leave these directories on disk and I can't guarantee
-    this option to work on all systems and configurations without issues! So please use
-    this option with caution and prefer unpacking the files before processing whenever
-    possible. If you encounter issues, please report them on GitHub. Also, contributions
-    to improve this functionality are welcome!
-
-
-Process zip files directly by temporarily extracting them:
-=== "CLI"
-
-    ```bash
-    # Temporarily unpack zip files during extraction
-    gedixr extract /path/to/data --temp-unpack-zip
-    
-    # Assume files are already unzipped (default)
-    gedixr extract /path/to/data --no-temp-unpack-zip
-    ```
-
-=== "Python"
-
-    ```python
-    # Temporarily unpack zip files during extraction
-    gdf = extract_data(
-        directory="/path/to/data",
-        temp_unpack_zip=True
-    )
-
-    # Assume files are already unzipped (default)
-    gdf = extract_data(
-        directory="/path/to/data",
-        temp_unpack_zip=False
     )
     ```
 
