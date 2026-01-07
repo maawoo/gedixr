@@ -1,6 +1,5 @@
 from pathlib import Path
 import re
-import zipfile
 from tqdm import tqdm
 import h5py
 import pandas as pd
@@ -8,7 +7,6 @@ import geopandas as gp
 from shapely.geometry import Point
 
 from typing import Optional
-from tempfile import TemporaryDirectory
 from datetime import datetime
 from logging import Logger
 from pandas import DataFrame
@@ -21,7 +19,6 @@ import gedixr.constants as con
 
 def extract_data(directory: str | Path,
                  gedi_product: str,
-                 temp_unpack_zip: bool = False,
                  variables: Optional[list[tuple[str, str]]] = None,
                  beams: Optional[str| list[str]] = None,
                  filter_month: Optional[tuple[int, int]] = None,
@@ -50,12 +47,6 @@ def extract_data(directory: str | Path,
         Root directory to recursively search for GEDI L2A/L2B files.
     gedi_product: str
         GEDI product type. Either 'L2A' or 'L2B'. Default is 'L2B'.
-    temp_unpack_zip: bool, optional
-        Unpack zip archives in temporary directories and use those to extract
-        data from? Default is False. Use this option with caution, as it will
-        create a temporary directory to decompress each zip archive found in the
-        specified directory! The temporary directories will be deleted after the
-        extraction process, but interruptions may cause them to remain on disk.
     variables: list of tuple of str, optional
         List of tuples containing the desired column name in the returned
         GeoDataFrame and the GEDI layer name to be extracted. Defaults to those
@@ -117,18 +108,12 @@ def extract_data(directory: str | Path,
         out_dict = anc.prepare_vec(vec=subset_vector)
     layers = con.DEFAULT_BASE[gedi_product] + variables
     
-    tmp_dirs = None
     try:
         # (1) Search for GEDI files
-        if temp_unpack_zip:
-            filepaths, tmp_dirs = _filepaths_from_zips(directory=directory,
-                                                       pattern=pattern)
-        else:
-            filepaths = [p for p in directory.rglob('*') if p.is_file() and
-                         p.match(pattern)]
+        filepaths = [p for p in directory.rglob('*') if p.is_file() and
+                     p.match(pattern)]
         
         if len(filepaths) == 0:
-            _cleanup_tmp_dirs(tmp_dirs)
             raise RuntimeError(f"No GEDI {gedi_product} files were found in "
                                f"{directory}.")
         
@@ -219,7 +204,6 @@ def extract_data(directory: str | Path,
         anc.log(handler=log_handler, mode='exception', msg=str(msg))
         anc.error_tracker.increment()
     finally:
-        _cleanup_tmp_dirs(tmp_dirs)
         anc.close_logging(log_handler=log_handler)
         error_count = anc.error_tracker.count
         if error_count > 0:
@@ -232,32 +216,6 @@ def _date_from_gedi_file(gedi_path: Path) -> datetime:
     date_str = re.search('[AB]_[0-9]{13}', gedi_path.name).group()
     date_str = date_str[2:]
     return datetime.strptime(date_str, '%Y%j%H%M%S')
-
-
-def _cleanup_tmp_dirs(tmp_dirs: list[TemporaryDirectory]) -> None:
-    """Cleanup temporary directories created during the extraction process."""
-    if tmp_dirs is not None:
-        for tmp_dir in tmp_dirs:
-            tmp_dir.cleanup()
-
-
-def _filepaths_from_zips(directory: Path,
-                         pattern: str
-                         ) -> (list[Path], list[TemporaryDirectory]):
-    """Decompress zips to temp directories and find matching filepaths."""
-    zip_files = [p for p in directory.rglob('*') if p.is_file() and
-                 p.match('*.zip')]
-    tmp_dirs = [TemporaryDirectory() for _ in zip_files]
-    
-    filepaths = []
-    for zf, tmp_dir in zip(zip_files, tmp_dirs):
-        tmp_dir_path = Path(tmp_dir.name)
-        with zipfile.ZipFile(zf, 'r') as zip_ref:
-            zip_ref.extractall(tmp_dir_path)
-        match = [p for p in tmp_dir_path.rglob('*') if p.is_file() and
-                 p.match(pattern)]
-        filepaths.extend(match)
-    return filepaths, tmp_dirs
 
 
 def _from_file(gedi: h5py.File,

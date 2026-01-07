@@ -74,13 +74,6 @@ def extract(
             help="Apply quality filtering to GEDI data",
         ),
     ] = True,
-    temp_unpack_zip: Annotated[
-        bool,
-        typer.Option(
-            "--temp-unpack-zip/--no-temp-unpack-zip",
-            help="Unpack zip archives in temporary directories",
-        ),
-    ] = False,
 ):
     """
     Extract data from GEDI L2A or L2B files.
@@ -111,7 +104,6 @@ def extract(
         result = gedi.extract_data(
             directory=directory,
             gedi_product=product,
-            temp_unpack_zip=temp_unpack_zip,
             beams=beams_list,
             filter_month=filter_month,
             subset_vector=subset_vector_list,
