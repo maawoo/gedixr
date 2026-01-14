@@ -58,7 +58,7 @@ columns are still included in the output in addition to other related columns
     ```python
     from gedixr.gedi import extract_data
     
-    gdf = extract_data(
+    gdf, out_path = extract_data(
         directory="/path/to/data",
         gedi_product='L2B',
         apply_quality_filter=False
@@ -73,7 +73,7 @@ After extracting data without quality filtering, you can apply your own criteria
 from gedixr.gedi import extract_data
 
 # Extract without default filtering
-gdf = extract_data(
+gdf, out_path = extract_data(
     directory="/path/to/data",
     gedi_product='L2B',
     apply_quality_filter=False

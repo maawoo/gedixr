@@ -76,7 +76,15 @@ def extract_data(directory: str | Path,
     -------
     GeoDataFrame or dictionary
         In case of an output dictionary, these are the expected key, value pairs:
-            {'<Vector Basename>': {'geo': Polygon, 'gdf': GeoDataFrame}}
+            `{'<Vector Basename>': {'geo': Polygon, 'gdf': GeoDataFrame, 'path': Path}}`
+            where 'geo' is the geometry of the vector file, 'gdf' is the extracted
+            GeoDataFrame for that geometry, and 'path' is the path to the output
+            GeoParquet file.
+        If no vector files were provided, a single GeoDataFrame is returned.
+    out_path: Path or None
+        In case no vector files were provided, the path to the output GeoParquet
+        file is returned. Otherwise, None is returned as the output paths are
+        included in the output dictionary.
     """
     if gedi_product not in con.ALLOWED_PRODUCTS:
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of "
@@ -183,23 +191,26 @@ def extract_data(directory: str | Path,
         out_dir = directory / 'extracted'
         out_dir.mkdir(exist_ok=True)
         if subset_vector is not None:
-            for vec_base, _dict in out_dict.items():
-                if _dict['gdf'] is not None:
-                    out_name = f'{now}_{gedi_product}_{flt}_{vec_base}.parquet'
-                    _dict['gdf'].to_parquet(out_dir / out_name)
-            return out_dict
+            for k, v in out_dict.items():
+                v['path'] = None
+                if v['gdf'] is not None:
+                    out_path = out_dir.joinpath(f'{now}_{gedi_product}_{flt}_{k}.parquet')
+                    v['gdf'].to_parquet(out_path)
+                    v['path'] = out_path
+            return out_dict, None
         else:
+            out_path = None
             # make sure that gdf's in list are not all empty 
             if gdf_list_no_spatial_subset:
                 out = pd.concat(gdf_list_no_spatial_subset)
-                out_name = f'{now}_{gedi_product}_{flt}.parquet'
-                out.to_parquet(out_dir / out_name)
+                out_path = out_dir.joinpath(f'{now}_{gedi_product}_{flt}.parquet')
+                out.to_parquet(out_path)
             else:
                 anc.log(handler=log_handler, mode='info',
                         msg="No GEDI shots passed the filtering criteria; "
                             "no output file created.")
                 out = GeoDataFrame()
-            return out
+            return out, out_path
     except Exception as msg:
         anc.log(handler=log_handler, mode='exception', msg=str(msg))
         anc.error_tracker.increment()
