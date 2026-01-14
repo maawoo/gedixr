@@ -101,7 +101,7 @@ def extract(
     typer.echo(f"Month filter: {filter_month_min} - {filter_month_max}")
     
     try:
-        result = gedi.extract_data(
+        result, out_path = gedi.extract_data(
             directory=directory,
             gedi_product=product,
             beams=beams_list,
@@ -114,8 +114,13 @@ def extract(
         
         if isinstance(result, dict):
             typer.echo(f"Processed {len(result)} spatial subsets")
+            for k, v in result.items():
+                if v['path'] is not None:
+                    typer.echo(f"  - {k}: {v['path']}")
         else:
             typer.echo(f"Processed {len(result)} total shots")
+            if out_path is not None:
+                typer.echo(f"Output saved to: {out_path}")
             
     except Exception as e:
         typer.secho(f"✗ Error during extraction: {e}", fg=typer.colors.RED, err=True)
