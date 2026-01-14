@@ -30,10 +30,10 @@ no time!
     from gedixr.gedi import extract_data
     
     # Extract default L2B variables
-    gdf_l2b = extract_data(directory="path/to/data", gedi_product='L2B')
+    gdf_l2b, out_path_l2b = extract_data(directory="path/to/data", gedi_product='L2B')
 
     # Extract default L2A variables with spatial subset
-    gdf_l2a = extract_data(
+    gdf_l2a, out_path_l2a = extract_data(
         directory="path/to/data",
         gedi_product='L2A',
         subset_vector="my_area.geojson"

@@ -39,8 +39,8 @@ from gedixr.gedi import extract_data
 from gedixr.xr import merge_gdf
 
 # Extract default L2A and L2B variables
-gdf_l2a = extract_data(directory="path/to/data", gedi_product='L2A')
-gdf_l2b = extract_data(directory="path/to/data", gedi_product='L2B')
+gdf_l2a, out_path_l2a = extract_data(directory="path/to/data", gedi_product='L2A')
+gdf_l2b, out_path_l2b = extract_data(directory="path/to/data", gedi_product='L2B')
 
 # Merge GDFs (using inner join)
 gdf = merge_gdf(l2a=gdf_l2a, l2b=gdf_l2b)

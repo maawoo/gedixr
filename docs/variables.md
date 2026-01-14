@@ -59,7 +59,7 @@ variables = [
     ('solar_azimuth', 'solar_azimuth'),
     ('treecover', 'land_cover_data/landsat_treecover')
 ]
-gdf = extract_data(
+gdf, out_path = extract_data(
     directory="/path/to/data",
     gedi_product='L2A',
     variables=variables

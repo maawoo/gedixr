@@ -39,7 +39,7 @@ input directory and log the extraction process in the `log/` subdirectory
     ```python
     from gedixr.gedi import extract_data
     
-    gdf = extract_data(
+    gdf, out_path = extract_data(
         directory="/path/to/gedi/data",
         gedi_product='L2B'
     )
@@ -74,8 +74,8 @@ from gedixr.gedi import extract_data
 from gedixr.xr import merge_gdf
 
 # Extract both products
-gdf_l2a = extract_data(directory="path/to/data", gedi_product='L2A')
-gdf_l2b = extract_data(directory="path/to/data", gedi_product='L2B')
+gdf_l2a, out_path_l2a = extract_data(directory="path/to/data", gedi_product='L2A')
+gdf_l2b, out_path_l2b = extract_data(directory="path/to/data", gedi_product='L2B')
 
 # Merge them (using inner join)
 gdf_merged = merge_gdf(l2a=gdf_l2a, l2b=gdf_l2b)
