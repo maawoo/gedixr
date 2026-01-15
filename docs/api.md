@@ -6,7 +6,7 @@ workflows.
 ## Core Functions
 
 ### extract_data
-::: gedixr.gedi.extract_data
+::: gedixr.extract.extract_data
     options:
       show_source: true
 

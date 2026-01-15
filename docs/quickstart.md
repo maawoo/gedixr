@@ -37,7 +37,7 @@ input directory and log the extraction process in the `log/` subdirectory
 === "Python"
 
     ```python
-    from gedixr.gedi import extract_data
+    from gedixr.extract import extract_data
     
     gdf, out_path = extract_data(
         directory="/path/to/gedi/data",
@@ -70,7 +70,7 @@ You can also merge L2A and L2B data directly after extraction using the `merge_g
 function:
 
 ```python
-from gedixr.gedi import extract_data
+from gedixr.extract import extract_data
 from gedixr.xr import merge_gdf
 
 # Extract both products
@@ -111,6 +111,8 @@ Control whether to apply default quality filters:
 === "Python"
 
     ```python
+    from gedixr.extract import extract_data
+
     # With quality filtering (default)
     gdf = extract_data(
         directory="/path/to/data",
@@ -152,6 +154,8 @@ Extract data for specific areas using vector files:
 === "Python"
 
     ```python
+    from gedixr.extract import extract_data
+
     # Single area
     gdf = extract_data(
         directory="path/to/data",
@@ -196,6 +200,8 @@ Extract only data from certain months (e.g., June to August):
 === "Python"
 
     ```python
+    from gedixr.extract import extract_data
+
     gdf = extract_data(
         directory="path/to/data",
         filter_month=(6, 8)
@@ -222,6 +228,8 @@ Extract data from specific beam types:
 === "Python"
 
     ```python
+    from gedixr.extract import extract_data
+
     # Only power beams
     gdf = extract_data(directory="path/to/data", beams='power')
     
@@ -244,6 +252,8 @@ more details.
 === "Python"
 
     ```python
+    from gedixr.extract import extract_data
+
     variables = [
         ('rh50', 'rh50'),
         ('rh75', 'rh75'),

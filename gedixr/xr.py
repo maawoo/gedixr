@@ -61,8 +61,8 @@ def merge_gdf(l2a: GeoDataFrame | dict,
     """
     Merges the data of two GeoDataFrames containing GEDI L2A and L2B data. If
     dictionaries are provided, the function assumes key, value pairs of the dictionary
-    output of `gedi.extract_data`. The function will merge the data of matching
-    geometries and return a dictionary of GeoDataFrames.
+    output of `gedixr.extract.extract_data`. The function will merge the data of
+    matching geometries and return a dictionary of GeoDataFrames.
     
     Parameters
     ----------

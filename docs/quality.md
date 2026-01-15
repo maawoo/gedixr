@@ -56,7 +56,7 @@ columns are still included in the output in addition to other related columns
 === "Python"
 
     ```python
-    from gedixr.gedi import extract_data
+    from gedixr.extract import extract_data
     
     gdf, out_path = extract_data(
         directory="/path/to/data",
@@ -70,7 +70,7 @@ columns are still included in the output in addition to other related columns
 After extracting data without quality filtering, you can apply your own criteria:
 
 ```python
-from gedixr.gedi import extract_data
+from gedixr.extract import extract_data
 
 # Extract without default filtering
 gdf, out_path = extract_data(

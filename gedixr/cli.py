@@ -3,7 +3,7 @@ from typing import Optional, List
 import typer
 from typing_extensions import Annotated
 
-from gedixr import gedi
+from gedixr.extract import extract_data
 
 app = typer.Typer(
     name="gedixr",
@@ -101,7 +101,7 @@ def extract(
     typer.echo(f"Month filter: {filter_month_min} - {filter_month_max}")
     
     try:
-        result, out_path = gedi.extract_data(
+        result, out_path = extract_data(
             directory=directory,
             gedi_product=product,
             beams=beams_list,
