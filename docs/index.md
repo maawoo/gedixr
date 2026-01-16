@@ -28,7 +28,7 @@ no time!
 === "Python"
 
     ```python
-    from gedixr.gedi import extract_data
+    from gedixr.extract import extract_data
     
     # Extract default L2B variables
     gdf_l2b, out_path_l2b = extract_data(directory="path/to/data", gedi_product='L2B')

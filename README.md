@@ -35,7 +35,7 @@ gedixr extract /path/to/gedi/data -p L2A -v my_area.geojson
 ### Python API
 
 ```python
-from gedixr.gedi import extract_data
+from gedixr.extract import extract_data
 from gedixr.xr import merge_gdf
 
 # Extract default L2A and L2B variables

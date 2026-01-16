@@ -53,6 +53,8 @@ desired variable name and the corresponding, exact (!) GEDI layer name after the
 prefix. For example:
 
 ```python
+from gedixr.extract import extract_data
+
 variables = [
     ('rh50', 'rh50'),
     ('rh75', 'rh75'),

@@ -50,7 +50,7 @@ def extract_data(directory: str | Path,
     variables: list of tuple of str, optional
         List of tuples containing the desired column name in the returned
         GeoDataFrame and the GEDI layer name to be extracted. Defaults to those
-        retrieved by `gedixr.gedi.DEFAULT_VARIABLES['<gedi_product>']`.
+        retrieved by `gedixr.constants.DEFAULT_VARIABLES['<gedi_product>']`.
     beams: str or list of str, optional
         Which GEDI beams to extract values from? Defaults to all beams (power and
         coverage beams). Use `'power'` or `'coverage'` for power or coverage beams,
