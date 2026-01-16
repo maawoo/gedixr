@@ -151,10 +151,14 @@ def download_data(directory: str | Path,
             job_id_file.unlink()
         
         return file_paths, job_id
-        
-    except KeyboardInterrupt:
+    
+    except (KeyboardInterrupt, Exception) as e:
         if verbose:
-            print(f"\nDownload interrupted. Job ID saved to: {job_id_file}")
+            if isinstance(e, KeyboardInterrupt):
+                print(f"\nDownload interrupted by user. Job ID saved to: {job_id_file}")
+            else:
+                print(f"\nDownload interrupted due to error: {e}")
+                print(f"Job ID saved to: {job_id_file}")
             print("To resume, run:")
             print(f"  download_data(directory='{directory}', gedi_product='{gedi_product}', job_id='{job_id}')")
             print("or use the CLI with --job-id option.")
