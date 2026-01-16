@@ -35,6 +35,7 @@ nav:
       - Installation: installation.md
       - Quick Start: quickstart.md
   - User Guide:
+      - Downloading Data: download.md
       - Default Variables: variables.md
       - Quality Filtering: quality.md
   - API Reference: api.md

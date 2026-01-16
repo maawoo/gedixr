@@ -23,7 +23,9 @@ dependencies = [
     "tqdm",
     "geocube",
     "pyarrow",
-    "typer"
+    "typer",
+    "harmony-py",
+    "earthaccess",
 ]
 
 [project.urls]

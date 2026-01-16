@@ -24,7 +24,7 @@ def extract_data(directory: str | Path,
                  filter_month: Optional[tuple[int, int]] = None,
                  subset_vector: Optional[str | Path | list[str | Path]] = None,
                  apply_quality_filter: bool = True
-                 ) -> (GeoDataFrame | dict[str, dict[str, GeoDataFrame | Polygon]]):
+                 ) -> (GeoDataFrame | dict[str, dict[str, GeoDataFrame | Polygon] | Path], Optional[Path]):
     """
     Extracts data from GEDI L2A or L2B files in HDF5 format using the following
     steps:

@@ -1,4 +1,9 @@
 ALLOWED_PRODUCTS = ['L2A', 'L2B']
+PRODUCT_MAPPING = {
+    'L2A': 'GEDI02_A',
+    'L2B': 'GEDI02_B'
+}
+
 PATTERN_L2A = '*GEDI02_A_*.h5'
 PATTERN_L2B = '*GEDI02_B_*.h5'
 

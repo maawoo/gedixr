@@ -4,6 +4,7 @@ import typer
 from typing_extensions import Annotated
 
 from gedixr.extract import extract_data
+from gedixr.download import download_data
 
 app = typer.Typer(
     name="gedixr",
@@ -124,6 +125,130 @@ def extract(
             
     except Exception as e:
         typer.secho(f"✗ Error during extraction: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def download(
+    directory: Annotated[
+        Path,
+        typer.Argument(
+            help="Directory where downloaded files will be saved",
+            file_okay=False,
+            dir_okay=True,
+        ),
+    ],
+    product: Annotated[
+        str,
+        typer.Option(
+            "--product", "-p",
+            help="GEDI product type: 'L2A' or 'L2B'",
+        ),
+    ],
+    time_start: Annotated[
+        Optional[str],
+        typer.Option(
+            "--time-start", "-s",
+            help="Start date in YYYY-MM-DD format",
+        ),
+    ] = None,
+    time_end: Annotated[
+        Optional[str],
+        typer.Option(
+            "--time-end", "-e",
+            help="End date in YYYY-MM-DD format",
+        ),
+    ] = None,
+    subset_vector: Annotated[
+        Optional[Path],
+        typer.Option(
+            "--subset-vector", "-v",
+            help="Path to vector file for spatial subsetting",
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+        ),
+    ] = None,
+    bbox: Annotated[
+        Optional[str],
+        typer.Option(
+            "--bbox",
+            help="Bounding box as 'min_lon,min_lat,max_lon,max_lat'",
+        ),
+    ] = None,
+    job_id: Annotated[
+        Optional[str],
+        typer.Option(
+            "--job-id",
+            help="Harmony job ID to resume a previous download",
+        ),
+    ] = None,
+    quiet: Annotated[
+        bool,
+        typer.Option(
+            "--quiet", "-q",
+            help="Suppress progress messages",
+        ),
+    ] = False,
+):
+    """
+    Download GEDI data using NASA Harmony API.
+    
+    Requires either --subset-vector or --bbox for spatial subsetting.
+    If --job-id is provided, other parameters (time-range, subset-*) are ignored.
+    """
+    # Validate directory
+    if not directory.exists():
+        typer.secho(f"✗ Directory does not exist: {directory}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    
+    # Process time range
+    time_range = None
+    if time_start and time_end:
+        time_range = (time_start, time_end)
+    elif time_start or time_end:
+        typer.secho("✗ Either both --time-start and --time-end must be provided, or neither", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    
+    # Process bbox
+    subset_bbox = None
+    if bbox:
+        try:
+            bbox_parts = [float(x.strip()) for x in bbox.split(',')]
+            if len(bbox_parts) != 4:
+                raise ValueError
+            subset_bbox = tuple(bbox_parts)
+        except ValueError:
+            typer.secho("✗ Invalid bbox format. Use: 'min_lon,min_lat,max_lon,max_lat'", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1)
+    
+    # Validate spatial subset
+    if job_id is None and subset_vector is None and subset_bbox is None:
+        typer.secho("✗ Either --subset-vector or --bbox must be provided", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    
+    if not quiet:
+        typer.echo(f"Downloading GEDI {product} data to: {directory}")
+    
+    try:
+        file_paths, returned_job_id = download_data(
+            directory=directory,
+            gedi_product=product,
+            time_range=time_range,
+            subset_vector=subset_vector,
+            subset_bbox=subset_bbox,
+            job_id=job_id,
+            verbose=not quiet,
+        )
+        
+        typer.secho("✓ Download completed successfully!", fg=typer.colors.GREEN)
+        
+    except KeyboardInterrupt:
+        typer.secho("\n✗ Download interrupted by user", fg=typer.colors.YELLOW, err=True)
+        raise typer.Exit(code=130)
+    except Exception as e:
+        typer.secho(f"✗ Error during download: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
 
