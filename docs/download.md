@@ -80,8 +80,8 @@ download the requested data using `gedixr`:
 
 ### Required Parameters
 
-- `directory`: Directory where files will be saved. A subdirectory named after the product 
-(L2A or L2B) will be created automatically.
+- `directory`: Directory where files will be saved. A subdirectory named after the 
+product (L2A or L2B) will be created automatically.
 - `--product` / `-p`: GEDI product type ('L2A' or 'L2B')
 
 ### Spatial Subsetting (one required unless resuming with `--job-id`)
@@ -232,12 +232,15 @@ robustly.
 
 ### Connection Issues
 
-If download is interrupted due to connection issues, simply resume using the `--job-id` option with the job ID that was displayed or saved in the `.harmony_job_id` file.
+If download is interrupted due to connection issues, simply resume using the `--job-id` 
+option with the job ID that was displayed or saved in the `.harmony_job_id` file.
 
 !!! note "Two-Stage Subsetting"
     Notice how the vector file is used in both steps:
     
-    1. **Download**: Reduces the amount of data downloaded by subsetting to the vector's bounding box
+    1. **Download**: Reduces the amount of data downloaded by subsetting to the vector's 
+    bounding box
     2. **Extraction**: Performs precise spatial filtering to the exact vector geometry
     
-    This two-stage approach minimizes download time while ensuring accurate spatial subsetting.
+    This two-stage approach minimizes download time while ensuring accurate spatial 
+    subsetting.
