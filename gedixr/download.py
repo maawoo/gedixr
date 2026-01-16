@@ -1,9 +1,6 @@
 from pathlib import Path
 import datetime as dt
 import json
-import sys
-import io
-import re
 from typing import Optional
 import warnings
 import geopandas as gpd
@@ -123,18 +120,7 @@ def download_data(directory: str | Path,
         print("Files will be processed by Harmony before proceeding with download...")
     
     try:
-        # Capture and filter stdout to reduce repetitive progress messages
-        if verbose:
-            progress_filter = _ProgressFilter(verbose=True)
-            original_stdout = sys.stdout
-            sys.stdout = progress_filter
-        
-        try:
-            result_json = harmony_client.result_json(job_id, show_progress=verbose)
-        finally:
-            if verbose:
-                sys.stdout = original_stdout
-
+        result_json = harmony_client.result_json(job_id, show_progress=verbose)
         status = result_json.get('status', 'unknown')
         if status == 'failed':
             _failed_status(download_dir, job_id, job_id_file, result_json)
@@ -251,45 +237,3 @@ def _failed_status(download_dir : Path,
             job_id_file.unlink()
         
         raise RuntimeError(err_msg)
-
-
-class _ProgressFilter(io.StringIO):
-    """Filter repetitive progress messages from harmony-py."""
-    
-    def __init__(self, verbose=True):
-        super().__init__()
-        self.verbose = verbose
-        self.last_percent = -1
-        self.last_message = ""
-        self.original_stdout = sys.stdout
-    
-    def write(self, text):
-        """Override write to filter repetitive messages."""
-        if not self.verbose:
-            return
-        
-        # Extract percentage from progress messages like " [ Processing:  54% ]"
-        match = re.search(r'Processing:\s+(\d+)%', text)
-        if match:
-            current_percent = int(match.group(1))
-            # Print whenever percentage changes
-            if current_percent != self.last_percent:
-                self.original_stdout.write(f"\rProcessing: {current_percent}%")
-                self.original_stdout.flush()
-                self.last_percent = current_percent
-                
-                # New line at completion
-                if current_percent >= 100 or 'complete' in text.lower():
-                    self.original_stdout.write("\n")
-                    self.original_stdout.flush()
-        elif text.strip() and text != self.last_message:
-            # Print other unique messages
-            if 'Processing:' not in text:  # Avoid the spinner characters
-                self.original_stdout.write(text)
-                self.original_stdout.flush()
-                self.last_message = text
-    
-    def flush(self):
-        """Override flush."""
-        if self.verbose:
-            self.original_stdout.flush()
