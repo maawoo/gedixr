@@ -158,6 +158,8 @@ cython_debug/
 # pixi 
 .pixi/*
 !.pixi/config.toml
+pixi.lock
+pixi.toml
 
 # custom
 dev_*
