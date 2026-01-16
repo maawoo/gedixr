@@ -6,6 +6,7 @@ no time!
 
 ## Features
 
+- **Download GEDI data** directly from NASA's Earthdata servers using Harmony API
 - **Command-line interface** for quick extraction from a directory of HDF5 files
 - **Logging** to monitor extraction progress and issues
 - **Quality filtering** built-in with the option to skip and apply custom filters later

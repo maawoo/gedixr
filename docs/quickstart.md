@@ -4,16 +4,18 @@ This guide will help you get started with gedixr in just a few minutes.
 
 ## Prerequisites
 
-Before you begin, you'll need GEDI L2A/L2B v002 files. You can download them from 
-[NASA Earthdata Search](https://search.earthdata.nasa.gov/search?q=gedi+v002).
+Before you begin, you'll need GEDI L2A/L2B v002 files. You can either:
+
+1. **Download them through the NASA Earthdata Search web interface** - see [here](https://search.earthdata.nasa.gov/search?q=gedi+v002), or
+2. **Download them using gedixr** - see [Downloading Data](download.md) for details
 
 If Earthdata Search provided you with zipped files, please unzip them before proceeding.
 
 !!! tip "Spatial Subsetting"
-    NASA Earthdata Search allows you to already subset GEDI data to an area of interest 
-    during download, which can significantly reduce the amount of data you need to 
-    process. You could then use `gedixr`'s spatial subsetting for further refinement 
-    if needed (e.g., splitting into multiple study areas).
+    Both NASA Earthdata Search and gedixr's download functionality allow you to subset 
+    GEDI data to an area of interest during download, which can significantly reduce the 
+    amount of data you need to process. You can then use `gedixr`'s spatial subsetting 
+    during extraction for further refinement to one or multiple detailed areas of interest.
 
 ## Basic Workflow
 
