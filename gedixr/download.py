@@ -1,13 +1,19 @@
 from pathlib import Path
 import datetime as dt
 import json
-from typing import Optional
 import warnings
 import geopandas as gpd
 import earthaccess
 from harmony import BBox, Client, Collection, Request, CapabilitiesRequest
+import requests
+from requests.exceptions import ConnectionError as RequestsConnectionError
 
 import gedixr.constants as con
+
+from typing import Optional
+from collections.abc import Callable
+from functools import wraps
+from typing import Any
 
 
 def download_data(directory: str | Path,
@@ -167,9 +173,27 @@ def download_data(directory: str | Path,
 
 def _authenticate_earthdata() -> Client:
     """ Authenticate with Earthdata and return a Harmony client. """
-    auth = earthaccess.login(strategy='all', persist=True)
+    try:
+        auth = earthaccess.login(strategy='all', persist=True)
+    except RequestsConnectionError as e: 
+        print("Initial Earthdata authentication failed, retrying with trusted environment...")
+        try:
+            earthaccess.Auth.get_session = _trust_env(earthaccess.Auth.get_session)
+            auth = earthaccess.login(strategy='all', persist=True)
+        except Exception:
+            raise e
     harmony_client = Client(auth=(auth.username, auth.password)) 
     return harmony_client
+
+
+def _trust_env(f: Callable[..., requests.Session]) -> Callable[..., requests.Session]:
+    """ https://github.com/nsidc/earthaccess/issues/501#issuecomment-3458773255 """
+    @wraps(f)
+    def wrapper(*args: Any, **kwargs: Any) -> requests.Session:
+        session = f(*args, **kwargs)
+        session.trust_env = True
+        return session
+    return wrapper
 
 
 def _get_bbox(subset_vector: Optional[str | Path], 
