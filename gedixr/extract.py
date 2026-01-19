@@ -94,6 +94,13 @@ def extract_data(directory: str | Path,
     subset_vector = anc.to_pathlib(x=subset_vector) if \
         (subset_vector is not None) else None
     log_handler, now = anc.set_logging(directory, gedi_product)
+    anc.log(handler=log_handler, mode='info',
+            msg=f"Starting GEDI {gedi_product} data extraction using parameters: "
+                f"variables={variables}, beams={beams}, "
+                f"filter_month={filter_month}, "
+                f"subset_vector={subset_vector}, "
+                f"apply_quality_filter={apply_quality_filter}")
+    
     anc.error_tracker.reset() 
     out_dict = None
     if gedi_product == 'L2A':
@@ -327,6 +334,6 @@ def _filter_quality(df: DataFrame,
     len_after = len_before - len(df)
     filt_perc = round((len_after / len_before) * 100, 2)
     msg = f"{str(len_after).zfill(5)}/{str(len_before).zfill(5)} " \
-          f"({filt_perc}%) shots were filtered due to poor quality"
+          f"({filt_perc}%) shots were filtered out based on default quality criteria."
     anc.log(handler=log_handler, mode='info', file=gedi_path.name, msg=msg)
     return df
