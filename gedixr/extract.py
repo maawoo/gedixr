@@ -327,6 +327,6 @@ def _filter_quality(df: DataFrame,
     len_after = len_before - len(df)
     filt_perc = round((len_after / len_before) * 100, 2)
     msg = f"{str(len_after).zfill(5)}/{str(len_before).zfill(5)} " \
-          f"({filt_perc}%) shots were filtered due to poor quality"
+          f"({filt_perc}%) shots were filtered out based on default quality criteria."
     anc.log(handler=log_handler, mode='info', file=gedi_path.name, msg=msg)
     return df
