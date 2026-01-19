@@ -12,10 +12,10 @@ authors:
     orcid: 'https://orcid.org/0000-0002-5231-7208'
 identifiers:
   - type: url
-    value: 'https://github.com/maawoo/gedixr/tree/v0.5.0'
-    description: The URL of version 0.5.0 of the software.
+    value: 'https://github.com/maawoo/gedixr/tree/v0.6.0'
+    description: The URL of version 0.6.0 of the software.
 repository-code: 'https://github.com/maawoo/gedixr'
 license: MIT
-commit: ada1410
-version: 0.5.0
-date-released: '2026-01-07'
+commit: 690f690
+version: 0.6.0
+date-released: '2026-01-19'
