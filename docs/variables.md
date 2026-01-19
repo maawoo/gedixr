@@ -44,29 +44,40 @@ For comprehensive overviews of all available layers in each product:
 - [GEDI L2B Product Information](https://lpdaac.usgs.gov/products/gedi02_bv002#variables)
 
 ## Custom Variables
+
 You can specify custom variables to extract using the `variables` parameter when calling
-the `extract_data` function via the Python API. This option is currently not available 
-in the CLI.
+the `extract_data` function, or via the `--variables` option in the CLI.
 
 The `variables` parameter accepts a list of tuples, where each tuple contains the 
 desired variable name and the corresponding, exact (!) GEDI layer name after the beam 
-prefix. For example:
+prefix.
 
-```python
-from gedixr.extract import extract_data
+=== "CLI"
 
-variables = [
-    ('rh50', 'rh50'),
-    ('rh75', 'rh75'),
-    ('solar_azimuth', 'solar_azimuth'),
-    ('treecover', 'land_cover_data/landsat_treecover')
-]
-gdf, out_path = extract_data(
-    directory="/path/to/data",
-    gedi_product='L2A',
-    variables=variables
-)
-```
+    ```bash
+    # Extract custom variables using column_name=layer_name pairs
+    gedixr extract /path/to/data --product L2A \
+      --variables "rh50=rh50,rh75=rh75,solar_azimuth=solar_azimuth,treecover=land_cover_data/landsat_treecover"
+    ```
+
+=== "Python"
+
+    ```python
+    from gedixr.extract import extract_data
+
+    variables = [
+        ('rh50', 'rh50'),
+        ('rh75', 'rh75'),
+        ('solar_azimuth', 'solar_azimuth'),
+        ('treecover', 'land_cover_data/landsat_treecover')
+    ]
+    gdf, out_path = extract_data(
+        directory="/path/to/data",
+        gedi_product='L2A',
+        variables=variables
+    )
+    ```
+
 This will extract the `rh50`, `rh75`, `solar_azimuth`, and `landsat_treecover` variables
 in addition to the default base variables. As you can see, for nested variables (like
 `landsat_treecover`), you need to provide the full path within the HDF5 structure after

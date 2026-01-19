@@ -247,9 +247,16 @@ Extract data from specific beam types:
 
 ### Custom Variables
 
-Using the Python API, you can specify custom variables to extract using the `variables`
-parameter when calling the `extract_data` function. See [Variables](variables.md) for 
-more details.
+You can specify custom variables to extract instead of the default variables. See 
+[Variables](variables.md) for more details.
+
+=== "CLI"
+
+    ```bash
+    # Extract custom variables using column_name=layer_name pairs
+    gedixr extract /path/to/data --product L2A \
+      --variables "rh50=rh50,rh75=rh75,treecover=land_cover_data/landsat_treecover"
+    ```
 
 === "Python"
 
