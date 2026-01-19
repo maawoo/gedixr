@@ -32,6 +32,13 @@ def extract(
             help="GEDI product type: 'L2A' or 'L2B'",
         ),
     ] = "L2B",
+    variables: Annotated[
+        Optional[str],
+        typer.Option(
+            "--variables",
+            help="Comma-separated list of variables as 'column_name=layer_name' pairs (e.g., 'rh98=rh[98],cover=cover,pai=pai'). Default: extract default variables for the product",
+        ),
+    ] = None,
     beams: Annotated[
         Optional[str],
         typer.Option(
@@ -82,6 +89,21 @@ def extract(
     The extracted data will be saved as GeoParquet files in the 'extracted' 
     subdirectory of the input directory.
     """
+    # Process variables parameter
+    variables_list = None
+    if variables is not None:
+        variables_list = []
+        for pair in variables.split(','):
+            if '=' not in pair:
+                typer.secho(
+                    f"✗ Invalid variable format: '{pair}'. Use 'column_name=layer_name'",
+                    fg=typer.colors.RED,
+                    err=True
+                )
+                raise typer.Exit(code=1)
+            col_name, layer_name = pair.split('=', 1)
+            variables_list.append((col_name.strip(), layer_name.strip()))
+    
     # Process beams parameter
     beams_list = None
     if beams is not None and beams not in ['power', 'coverage']:
@@ -100,11 +122,14 @@ def extract(
     typer.echo(f"Extracting GEDI {product} data from: {directory}")
     typer.echo(f"Quality filter: {quality_filter}")
     typer.echo(f"Month filter: {filter_month_min} - {filter_month_max}")
+    if variables_list:
+        typer.echo(f"Custom variables: {len(variables_list)} variable(s)")
     
     try:
         result, out_path = extract_data(
             directory=directory,
             gedi_product=product,
+            variables=variables_list,
             beams=beams_list,
             filter_month=filter_month,
             subset_vector=subset_vector_list,
