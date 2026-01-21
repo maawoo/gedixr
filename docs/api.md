@@ -5,6 +5,11 @@ workflows.
 
 ## Core Functions
 
+### download_data
+::: gedixr.download.download_data
+    options:
+      show_source: true
+
 ### extract_data
 ::: gedixr.extract.extract_data
     options:
