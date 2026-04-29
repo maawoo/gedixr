@@ -4,7 +4,7 @@ version = "0.6.1"
 authors = [
     {name="Marco Wolsza", email="marco.wolsza@uni-jena.de" },
 ]
-description = "GEDI L2A/L2B -> GeoParquet & GeoDataFrame/Xarray"
+description = "Extract data from Global Ecosystem Dynamics Investigation (GEDI) L2A/L2B files into GeoParquet"
 keywords = ["geospatial", "earth-observation", "gedi", "lidar"]
 classifiers = [
     "Intended Audience :: Science/Research",

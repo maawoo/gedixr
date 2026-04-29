@@ -1,21 +1,16 @@
 cff-version: 1.2.0
+message: If you use this software, please cite it using these metadata.
 title: gedixr
-message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
+abstract: Extract data from Global Ecosystem Dynamics Investigation (GEDI) L2A/L2B files into GeoParquet 
 type: software
 authors:
-  - given-names: Marco
-    family-names: Wolsza
-    email: marco.wolsza@uni-jena.de
+  - family-names: Wolsza
+    given-names: Marco
     affiliation: University of Jena
     orcid: 'https://orcid.org/0000-0002-5231-7208'
-identifiers:
-  - type: url
-    value: 'https://github.com/maawoo/gedixr/tree/v0.6.0'
-    description: The URL of version 0.6.0 of the software.
-repository-code: 'https://github.com/maawoo/gedixr'
+version: 0.6.1
+date-released: '2026-04-29'
+commit: 1e082516d5427a3cb3f80b6fac8450b0e5d69af6
 license: MIT
-commit: 690f690
-version: 0.6.0
-date-released: '2026-01-19'
+url: 'https://maawoo.github.io/gedixr'
+repository-code: 'https://github.com/maawoo/gedixr'
