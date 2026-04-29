@@ -98,6 +98,31 @@ def log(handler: logging.Logger,
         raise RuntimeError('log mode {} is not supported'.format(mode))
 
 
+def initialize_log(handler: logging.Logger,
+                   gedi_product: str,
+                   variables: list[str],
+                   beams: list[str],
+                   filter_month: Optional[int],
+                   subset_vector: Optional[Path | list[Path]],
+                   apply_quality_filter: bool
+                   ) -> None:
+    import platform
+    from importlib.metadata import version 
+    log(handler=handler, mode='info',
+        msg=f"System information: {platform.platform()} {platform.processor()}, "
+            f"Python {platform.python_version()}, "
+            f"gedixr {version('gedixr')}, "
+            f"pandas {version('pandas')}, "
+            f"geopandas {version('geopandas')}")
+
+    log(handler=handler, mode='info',
+        msg=f"Starting GEDI {gedi_product} data extraction using parameters: "
+            f"variables={variables}, beams={beams}, "
+            f"filter_month={filter_month}, "
+            f"subset_vector={subset_vector}, "
+            f"apply_quality_filter={apply_quality_filter}")
+
+
 def close_logging(log_handler: logging.Logger) -> None:
     """
     Close logging for the current process. This is necessary to avoid appending

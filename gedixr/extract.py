@@ -94,12 +94,13 @@ def extract_data(directory: str | Path,
     subset_vector = anc.to_pathlib(x=subset_vector) if \
         (subset_vector is not None) else None
     log_handler, now = anc.set_logging(directory, gedi_product)
-    anc.log(handler=log_handler, mode='info',
-            msg=f"Starting GEDI {gedi_product} data extraction using parameters: "
-                f"variables={variables}, beams={beams}, "
-                f"filter_month={filter_month}, "
-                f"subset_vector={subset_vector}, "
-                f"apply_quality_filter={apply_quality_filter}")
+    anc.initialize_log(handler=log_handler,
+                       gedi_product=gedi_product,
+                       variables=variables,
+                       beams=beams,
+                       filter_month=filter_month,
+                       subset_vector=subset_vector,
+                       apply_quality_filter=apply_quality_filter)
     
     anc.error_tracker.reset() 
     out_dict = None
@@ -294,7 +295,7 @@ def _from_file(gedi: h5py.File,
                     out[k].extend(gedi[f"{beam}/{v}"][()])
         except Exception as msg:
             anc.log(handler=log_handler, mode='exception',
-                    file=f"{gedi_fp.name} ({beam})", msg=str(msg))
+                    file=f"{gedi_fp.name} ({beam})", msg=f"Error extracting variable '{v}': {str(msg)}")
             anc.error_tracker.increment()
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
