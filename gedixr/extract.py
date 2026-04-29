@@ -268,36 +268,59 @@ def _from_file(gedi: h5py.File,
     
     Returns
     -------
-    out: dict
-        Dictionary containing extracted values.
+    out: dict of list
+        Dictionary containing the extracted values for the specified beams and variables. 
+        The keys are the desired column names in the returned GeoDataFrame, and the values are 
+        lists of the extracted values for each shot. The length of each list corresponds to the 
+        number of shots
     """
-    out = {}
+    out: dict[str, list] = {}
     for beam in beams:
-        if beam not in list(gedi.keys()) or 'shot_number' not in gedi[beam].keys():
-            anc.log(handler=log_handler, mode='info', file=gedi_fp.name,
-                    msg=f"{beam} not found in file")
+        if beam not in list(gedi.keys()) or "shot_number" not in gedi[beam].keys():
+            anc.log(handler=log_handler, mode="info", file=gedi_fp.name, msg=f"{beam} not found in file")
             continue
+        
+        # Extract shot numbers first to determine the number of shots (n) for the current beam, which is
+        # needed to handle potential errors in the extraction of other variables and keep column lengths aligned.
         try:
-            for k, v in layers:
-                if v.startswith('rh') and gedi_product == 'L2A':
-                    if k not in out:
-                        out[k] = []
-                    idx = int(v[2:])
-                    out[k].extend([round(h_bin[idx] * 100) for h_bin in
-                                   gedi[f"{beam}/rh"][()]])
-                elif v == 'shot_number':
-                    if k not in out:
-                        out[k] = []
-                    out[k].extend([f"{_id:0>18}" for _id in gedi[f"{beam}/{v}"][()]])
-                else:
-                    if k not in out:
-                        out[k] = []
-                    out[k].extend(gedi[f"{beam}/{v}"][()])
+            shot_raw = gedi[f"{beam}/shot_number"][()]
+            n = len(shot_raw)
         except Exception as msg:
-            anc.log(handler=log_handler, mode='exception',
-                    file=f"{gedi_fp.name} ({beam})", msg=f"Error extracting variable '{v}': {str(msg)}")
+            anc.log(handler=log_handler, mode="exception", file=f"{gedi_fp.name} ({beam})", msg=str(msg))
             anc.error_tracker.increment()
-    out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
+            continue
+
+        # Extract variables for current beam
+        beam_data: dict[str, list] = {}
+        for k, v in layers:
+            try:
+                if v.startswith("rh") and gedi_product == "L2A":
+                    idx = int(v[2:])
+                    vals = [round(h_bin[idx] * 100) for h_bin in gedi[f"{beam}/rh"][()]]
+                elif v == "shot_number":
+                    vals = [f"{_id:0>18}" for _id in shot_raw]
+                else:
+                    vals = list(gedi[f"{beam}/{v}"][()])
+
+                if len(vals) != n:
+                    raise ValueError(f"Length mismatch for '{v}': got {len(vals)}, expected {n}")
+
+            except Exception as msg:
+                anc.log(
+                    handler=log_handler,
+                    mode="exception",
+                    file=f"{gedi_fp.name} ({beam})",
+                    msg=f"Error extracting variable '{v}': {str(msg)}"
+                )
+                anc.error_tracker.increment()
+                vals = [pd.NA] * n  # keep column lengths aligned
+
+            beam_data[k] = vals
+        
+        # Combine data for current beam with output data, ensuring that column lengths are aligned even in case of errors
+        for k, vals in beam_data.items():
+            out.setdefault(k, []).extend(vals)
+        out.setdefault("acq_time", []).extend([str(acq_time)] * n)
     return out
 
 
