@@ -295,7 +295,7 @@ def _from_file(gedi: h5py.File,
                     out[k].extend(gedi[f"{beam}/{v}"][()])
         except Exception as msg:
             anc.log(handler=log_handler, mode='exception',
-                    file=f"{gedi_fp.name} ({beam})", msg=str(msg))
+                    file=f"{gedi_fp.name} ({beam})", msg=f"Error extracting variable '{v}': {str(msg)}")
             anc.error_tracker.increment()
     out['acq_time'] = [(str(acq_time)) for _ in range(len(out['shot']))]
     return out
