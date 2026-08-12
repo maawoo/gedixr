@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Annotated
 
 import typer
 
@@ -14,7 +15,7 @@ app = typer.Typer(
 
 @app.command()
 def extract(
-    directory: typer.Annotated[
+    directory: Annotated[
         Path,
         typer.Argument(
             help="Root directory to recursively search for GEDI L2A/L2B files",
@@ -24,28 +25,28 @@ def extract(
             readable=True,
         ),
     ],
-    product: typer.Annotated[
+    product: Annotated[
         str,
         typer.Option(
             "--product", "-p",
             help="GEDI product type: 'L2A' or 'L2B'",
         ),
     ] = "L2B",
-    variables: typer.Annotated[
+    variables: Annotated[
         str | None,
         typer.Option(
             "--variables",
             help="Comma-separated list of variables as 'column_name=layer_name' pairs (e.g., 'rh98=rh[98],cover=cover,pai=pai'). Default: extract default variables for the product",
         ),
     ] = None,
-    beams: typer.Annotated[
+    beams: Annotated[
         str | None,
         typer.Option(
             "--beams", "-b",
             help="Which beams to extract: 'power' (power beams), 'coverage' (coverage beams), or comma-separated beam names (e.g., 'BEAM0101,BEAM0110'). Default: all beams",
         ),
     ] = None,
-    filter_month_min: typer.Annotated[
+    filter_month_min: Annotated[
         int,
         typer.Option(
             "--filter-month-min",
@@ -54,7 +55,7 @@ def extract(
             max=12,
         ),
     ] = 1,
-    filter_month_max: typer.Annotated[
+    filter_month_max: Annotated[
         int,
         typer.Option(
             "--filter-month-max",
@@ -63,7 +64,7 @@ def extract(
             max=12,
         ),
     ] = 12,
-    subset_vector: typer.Annotated[
+    subset_vector: Annotated[
         list[Path] | None,
         typer.Option(
             "--subset-vector", "-v",
@@ -74,7 +75,7 @@ def extract(
             readable=True,
         ),
     ] = None,
-    quality_filter: typer.Annotated[
+    quality_filter: Annotated[
         bool,
         typer.Option(
             "--quality-filter/--no-quality-filter",
@@ -154,7 +155,7 @@ def extract(
 
 @app.command()
 def download(
-    directory: typer.Annotated[
+    directory: Annotated[
         Path,
         typer.Argument(
             help="Directory where downloaded files will be saved",
@@ -162,28 +163,28 @@ def download(
             dir_okay=True,
         ),
     ],
-    product: typer.Annotated[
+    product: Annotated[
         str,
         typer.Option(
             "--product", "-p",
             help="GEDI product type: 'L2A' or 'L2B'",
         ),
     ],
-    time_start: typer.Annotated[
+    time_start: Annotated[
         str | None,
         typer.Option(
             "--time-start", "-s",
             help="Start date in YYYY-MM-DD format",
         ),
     ] = None,
-    time_end: typer.Annotated[
+    time_end: Annotated[
         str | None,
         typer.Option(
             "--time-end", "-e",
             help="End date in YYYY-MM-DD format",
         ),
     ] = None,
-    subset_vector: typer.Annotated[
+    subset_vector: Annotated[
         Path | None,
         typer.Option(
             "--subset-vector", "-v",
@@ -194,21 +195,21 @@ def download(
             readable=True,
         ),
     ] = None,
-    bbox: typer.Annotated[
+    bbox: Annotated[
         str | None,
         typer.Option(
             "--bbox",
             help="Bounding box as 'min_lon,min_lat,max_lon,max_lat'",
         ),
     ] = None,
-    job_id: typer.Annotated[
+    job_id: Annotated[
         str | None,
         typer.Option(
             "--job-id",
             help="Harmony job ID to resume a previous download",
         ),
     ] = None,
-    quiet: typer.Annotated[
+    quiet: Annotated[
         bool,
         typer.Option(
             "--quiet", "-q",
