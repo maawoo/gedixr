@@ -1,10 +1,9 @@
 from pathlib import Path
-from typing import Optional, List
-import typer
-from typing_extensions import Annotated
 
-from gedixr.extract import extract_data
+import typer
+
 from gedixr.download import download_data
+from gedixr.extract import extract_data
 
 app = typer.Typer(
     name="gedixr",
@@ -15,7 +14,7 @@ app = typer.Typer(
 
 @app.command()
 def extract(
-    directory: Annotated[
+    directory: typer.Annotated[
         Path,
         typer.Argument(
             help="Root directory to recursively search for GEDI L2A/L2B files",
@@ -25,28 +24,28 @@ def extract(
             readable=True,
         ),
     ],
-    product: Annotated[
+    product: typer.Annotated[
         str,
         typer.Option(
             "--product", "-p",
             help="GEDI product type: 'L2A' or 'L2B'",
         ),
     ] = "L2B",
-    variables: Annotated[
-        Optional[str],
+    variables: typer.Annotated[
+        str | None,
         typer.Option(
             "--variables",
             help="Comma-separated list of variables as 'column_name=layer_name' pairs (e.g., 'rh98=rh[98],cover=cover,pai=pai'). Default: extract default variables for the product",
         ),
     ] = None,
-    beams: Annotated[
-        Optional[str],
+    beams: typer.Annotated[
+        str | None,
         typer.Option(
             "--beams", "-b",
             help="Which beams to extract: 'power' (power beams), 'coverage' (coverage beams), or comma-separated beam names (e.g., 'BEAM0101,BEAM0110'). Default: all beams",
         ),
     ] = None,
-    filter_month_min: Annotated[
+    filter_month_min: typer.Annotated[
         int,
         typer.Option(
             "--filter-month-min",
@@ -55,7 +54,7 @@ def extract(
             max=12,
         ),
     ] = 1,
-    filter_month_max: Annotated[
+    filter_month_max: typer.Annotated[
         int,
         typer.Option(
             "--filter-month-max",
@@ -64,8 +63,8 @@ def extract(
             max=12,
         ),
     ] = 12,
-    subset_vector: Annotated[
-        Optional[List[Path]],
+    subset_vector: typer.Annotated[
+        list[Path] | None,
         typer.Option(
             "--subset-vector", "-v",
             help="Path(s) to vector file(s) for spatial subsetting (can be used multiple times). Default: no spatial subsetting",
@@ -75,7 +74,7 @@ def extract(
             readable=True,
         ),
     ] = None,
-    quality_filter: Annotated[
+    quality_filter: typer.Annotated[
         bool,
         typer.Option(
             "--quality-filter/--no-quality-filter",
@@ -148,14 +147,14 @@ def extract(
             if out_path is not None:
                 typer.echo(f"Output saved to: {out_path}")
             
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         typer.secho(f"✗ Error during extraction: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
 
 @app.command()
 def download(
-    directory: Annotated[
+    directory: typer.Annotated[
         Path,
         typer.Argument(
             help="Directory where downloaded files will be saved",
@@ -163,29 +162,29 @@ def download(
             dir_okay=True,
         ),
     ],
-    product: Annotated[
+    product: typer.Annotated[
         str,
         typer.Option(
             "--product", "-p",
             help="GEDI product type: 'L2A' or 'L2B'",
         ),
     ],
-    time_start: Annotated[
-        Optional[str],
+    time_start: typer.Annotated[
+        str | None,
         typer.Option(
             "--time-start", "-s",
             help="Start date in YYYY-MM-DD format",
         ),
     ] = None,
-    time_end: Annotated[
-        Optional[str],
+    time_end: typer.Annotated[
+        str | None,
         typer.Option(
             "--time-end", "-e",
             help="End date in YYYY-MM-DD format",
         ),
     ] = None,
-    subset_vector: Annotated[
-        Optional[Path],
+    subset_vector: typer.Annotated[
+        Path | None,
         typer.Option(
             "--subset-vector", "-v",
             help="Path to vector file for spatial subsetting",
@@ -195,21 +194,21 @@ def download(
             readable=True,
         ),
     ] = None,
-    bbox: Annotated[
-        Optional[str],
+    bbox: typer.Annotated[
+        str | None,
         typer.Option(
             "--bbox",
             help="Bounding box as 'min_lon,min_lat,max_lon,max_lat'",
         ),
     ] = None,
-    job_id: Annotated[
-        Optional[str],
+    job_id: typer.Annotated[
+        str | None,
         typer.Option(
             "--job-id",
             help="Harmony job ID to resume a previous download",
         ),
     ] = None,
-    quiet: Annotated[
+    quiet: typer.Annotated[
         bool,
         typer.Option(
             "--quiet", "-q",
@@ -257,7 +256,7 @@ def download(
         typer.echo(f"Downloading GEDI {product} data to: {directory}")
     
     try:
-        file_paths, returned_job_id = download_data(
+        _file_paths, returned_job_id = download_data(
             directory=directory,
             gedi_product=product,
             time_range=time_range,
@@ -267,12 +266,12 @@ def download(
             verbose=not quiet,
         )
         
-        typer.secho("✓ Download completed successfully!", fg=typer.colors.GREEN)
+        typer.secho(f"✓ Download completed successfully! Job ID: {returned_job_id}", fg=typer.colors.GREEN)
         
     except KeyboardInterrupt:
         typer.secho("\n✗ Download interrupted by user", fg=typer.colors.YELLOW, err=True)
         raise typer.Exit(code=130)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         typer.secho(f"✗ Error during download: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
 
@@ -284,7 +283,7 @@ def version():
     try:
         ver = get_version("gedixr")
         typer.echo(f"gedixr version: {ver}")
-    except Exception:
+    except Exception:  # noqa: BLE001
         typer.echo("gedixr version: unknown (package not installed)")
 
 

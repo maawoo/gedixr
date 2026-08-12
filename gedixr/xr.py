@@ -1,16 +1,16 @@
-import pandas as pd
-import geopandas as gp
-from geocube.api.core import make_geocube
-
-from typing import Optional
 from pathlib import Path
+
+import geopandas as gp
+import pandas as pd
+from geocube.api.core import make_geocube
 from geopandas import GeoDataFrame
 from xarray import Dataset
 
 
-def load_to_gdf(l2a: Optional[str | Path] = None,
-                l2b: Optional[str | Path] = None
-                ) -> GeoDataFrame:
+def load_to_gdf(
+    l2a: str | Path | None = None,
+    l2b: str | Path | None = None
+) -> GeoDataFrame:
     """
     Loads GEDI L2A and/or L2B GeoParquet or GeoPackage files as GeoDataFrames. 
     If both are provided, they will be merged into a single GeoDataFrame.
@@ -53,11 +53,12 @@ def _reader(fp: str | Path) -> GeoDataFrame:
         raise RuntimeError(f"{fp.suffix} not supported")
 
 
-def merge_gdf(l2a: GeoDataFrame | dict,
-              l2b: GeoDataFrame | dict,
-              how: str = 'inner',
-              on: Optional[str | list[str]] = None
-              ) -> GeoDataFrame | dict:
+def merge_gdf(
+    l2a: GeoDataFrame | dict,
+    l2b: GeoDataFrame | dict,
+    how: str = 'inner',
+    on: str | list[str] | None = None
+) -> GeoDataFrame | dict:
     """
     Merges the data of two GeoDataFrames containing GEDI L2A and L2B data. If
     dictionaries are provided, the function assumes key, value pairs of the dictionary
@@ -84,7 +85,7 @@ def merge_gdf(l2a: GeoDataFrame | dict,
     suffixes = ('_l2a', '_l2b')
     if on is None:
         on = ['geometry', 'shot', 'acq_time']
-    if all([isinstance(gdf, dict) for gdf in [l2a, l2b]]):
+    if all(isinstance(gdf, dict) for gdf in [l2a, l2b]):
         if len(l2a.keys()) != len(l2b.keys()):
             print(f"WARNING: The provided dictionaries contain data from a "
                   f"different number of geometries: "
@@ -104,7 +105,7 @@ def merge_gdf(l2a: GeoDataFrame | dict,
             merged_out[aoi] = {}
             merged_out[aoi]['gdf'] = merged_gdf
             merged_out[aoi]['geo'] = l2a[aoi]['geo']
-    elif all([isinstance(gdf, GeoDataFrame) for gdf in [l2a, l2b]]):
+    elif all(isinstance(gdf, GeoDataFrame) for gdf in [l2a, l2b]):
         _compare_gdfs(l2a, l2b)
         merged_out = l2b.merge(l2a, how=how, on=on, suffixes=suffixes)
     else:
@@ -112,9 +113,7 @@ def merge_gdf(l2a: GeoDataFrame | dict,
     return merged_out
 
 
-def _run_checks(dict_1: dict,
-                dict_2: dict,
-                key=None) -> None:
+def _run_checks(dict_1: dict, dict_2: dict, key: str | None = None) -> None:
     """Helper function to run checks on two GeoDataFrames to be merged."""
     if key is None:
         key = ''
@@ -127,9 +126,11 @@ def _run_checks(dict_1: dict,
     _compare_gdfs(dict_1['gdf'], dict_2['gdf'], key=key)
 
 
-def _compare_gdfs(gdf_1: GeoDataFrame,
-                  gdf_2: GeoDataFrame,
-                  key=None) -> None:
+def _compare_gdfs(
+    gdf_1: GeoDataFrame,
+    gdf_2: GeoDataFrame,
+    key: str | None = None
+) -> None:
     """Helper function to compare two GeoDataFrames to be merged."""
     if not gdf_1.crs == gdf_2.crs:
         raise RuntimeError(f"The GeoDataFrames{key} are projected in "
@@ -141,10 +142,11 @@ def _compare_gdfs(gdf_1: GeoDataFrame,
               f"unexpected results and/or missing data.")
 
 
-def gdf_to_xr(gdf: GeoDataFrame,
-              measurements: Optional[list[str]] = None,
-              resolution: Optional[tuple[float, float]] = None
-              ) -> Dataset:
+def gdf_to_xr(
+    gdf: GeoDataFrame,
+    measurements: list[str] | None = None,
+    resolution: tuple[float, float] | None = None
+) -> Dataset:
     """
     Rasterizes a GeoDataFrame containing GEDI L2A/L2B data to an xarray Dataset.
     

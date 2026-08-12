@@ -1,30 +1,30 @@
-from pathlib import Path
 import re
-from tqdm import tqdm
-import h5py
-import pandas as pd
-import geopandas as gp
-from shapely.geometry import Point
-
-from typing import Optional
 from datetime import datetime
 from logging import Logger
-from pandas import DataFrame
+from pathlib import Path
+
+import geopandas as gp
+import h5py
+import pandas as pd
 from geopandas import GeoDataFrame
+from pandas import DataFrame
 from shapely import Polygon
+from shapely.geometry import Point
+from tqdm import tqdm
 
 import gedixr.ancillary as anc
 import gedixr.constants as con
 
 
-def extract_data(directory: str | Path,
-                 gedi_product: str,
-                 variables: Optional[list[tuple[str, str]]] = None,
-                 beams: Optional[str| list[str]] = None,
-                 filter_month: Optional[tuple[int, int]] = None,
-                 subset_vector: Optional[str | Path | list[str | Path]] = None,
-                 apply_quality_filter: bool = True
-                 ) -> (GeoDataFrame | dict[str, dict[str, GeoDataFrame | Polygon] | Path], Optional[Path]):
+def extract_data(
+    directory: str | Path,
+    gedi_product: str,
+    variables: list[tuple[str, str]] | None = None,
+    beams: str | list[str] | None = None,
+    filter_month: tuple[int, int] | None = None,
+    subset_vector: str | Path | list[str | Path] | None = None,
+    apply_quality_filter: bool = True
+) -> tuple[GeoDataFrame | dict[str, dict[str, GeoDataFrame | Polygon] | Path], Path | None]:
     """
     Extracts data from GEDI L2A or L2B files in HDF5 format using the following
     steps:
@@ -117,7 +117,7 @@ def extract_data(directory: str | Path,
     elif beams == 'coverage':
         beams = con.COVERAGE_BEAMS
     else:
-        beams = beams
+        beams = beams  # noqa: PLW0127
     if filter_month is None:
         filter_month = (1, 12)
     if subset_vector is not None:
@@ -189,7 +189,7 @@ def extract_data(directory: str | Path,
                 
                 gedi.close()
                 del df, gdf
-            except Exception as msg:
+            except Exception as msg:  # noqa: BLE001
                 anc.log(handler=log_handler, mode='exception', file=fp.name,
                         msg=str(msg))
                 anc.error_tracker.increment()
@@ -219,7 +219,7 @@ def extract_data(directory: str | Path,
                             "no output file created.")
                 out = GeoDataFrame()
             return out, out_path
-    except Exception as msg:
+    except Exception as msg:  # noqa: BLE001
         anc.log(handler=log_handler, mode='exception', msg=str(msg))
         anc.error_tracker.increment()
     finally:
@@ -234,17 +234,18 @@ def _date_from_gedi_file(gedi_path: Path) -> datetime:
     """Extract date string from GEDI filename and convert to datetime object."""
     date_str = re.search('[AB]_[0-9]{13}', gedi_path.name).group()
     date_str = date_str[2:]
-    return datetime.strptime(date_str, '%Y%j%H%M%S')
+    return datetime.strptime(date_str, '%Y%j%H%M%S')  # noqa: DTZ007
 
 
-def _from_file(gedi: h5py.File,
-               gedi_fp: Path,
-               gedi_product: str,
-               beams: list[str],
-               layers: list[tuple[str, str]],
-               acq_time: datetime,
-               log_handler: Logger
-               ) -> dict:
+def _from_file(
+    gedi: h5py.File,
+    gedi_fp: Path,
+    gedi_product: str,
+    beams: list[str],
+    layers: list[tuple[str, str]],
+    acq_time: datetime,
+    log_handler: Logger
+) -> dict:
     """
     Extracts values from a GEDI HDF5 file.
     
@@ -276,7 +277,7 @@ def _from_file(gedi: h5py.File,
     """
     out: dict[str, list] = {}
     for beam in beams:
-        if beam not in list(gedi.keys()) or "shot_number" not in gedi[beam].keys():
+        if beam not in list(gedi.keys()) or "shot_number" not in gedi[beam]:
             anc.log(handler=log_handler, mode="info", file=gedi_fp.name, msg=f"{beam} not found in file")
             continue
         
@@ -285,7 +286,7 @@ def _from_file(gedi: h5py.File,
         try:
             shot_raw = gedi[f"{beam}/shot_number"][()]
             n = len(shot_raw)
-        except Exception as msg:
+        except Exception as msg:  # noqa: BLE001
             anc.log(handler=log_handler, mode="exception", file=f"{gedi_fp.name} ({beam})", msg=str(msg))
             anc.error_tracker.increment()
             continue
@@ -305,12 +306,12 @@ def _from_file(gedi: h5py.File,
                 if len(vals) != n:
                     raise ValueError(f"Length mismatch for '{v}': got {len(vals)}, expected {n}")
 
-            except Exception as msg:
+            except Exception as msg:  # noqa: BLE001
                 anc.log(
                     handler=log_handler,
                     mode="exception",
                     file=f"{gedi_fp.name} ({beam})",
-                    msg=f"Error extracting variable '{v}': {str(msg)}"
+                    msg=f"Error extracting variable '{v}': {msg!s}"
                 )
                 anc.error_tracker.increment()
                 vals = [pd.NA] * n  # keep column lengths aligned
@@ -324,10 +325,11 @@ def _from_file(gedi: h5py.File,
     return out
 
 
-def _filter_quality(df: DataFrame,
-                   log_handler: Logger,
-                   gedi_path: Path
-                   ) -> DataFrame:
+def _filter_quality(
+    df: DataFrame,
+    log_handler: Logger,
+    gedi_path: Path
+) -> DataFrame:
     """
     Filters a given pandas.Dataframe containing GEDI data using the following 
     conditions:

@@ -1,29 +1,29 @@
-from pathlib import Path
 import datetime as dt
 import json
 import warnings
-import geopandas as gpd
+from collections.abc import Callable
+from functools import wraps
+from pathlib import Path
+from typing import Any
+
 import earthaccess
-from harmony import BBox, Client, Collection, Request, CapabilitiesRequest
+import geopandas as gpd
 import requests
+from harmony import BBox, CapabilitiesRequest, Client, Collection, Request
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
 import gedixr.constants as con
 
-from typing import Optional
-from collections.abc import Callable
-from functools import wraps
-from typing import Any
 
-
-def download_data(directory: str | Path,
-                  gedi_product: str,
-                  time_range: Optional[tuple[str, str]] = None,
-                  subset_vector: Optional[str | Path] = None,
-                  subset_bbox: Optional[tuple[float, float, float, float]] = None,
-                  job_id: Optional[str] = None,
-                  verbose: bool = True
-                  ) -> list[Path]:
+def download_data(
+    directory: str | Path,
+    gedi_product: str,
+    time_range: tuple[str, str] | None = None,
+    subset_vector: str | Path | None = None,
+    subset_bbox: tuple[float, float, float, float] | None = None,
+    job_id: str | None = None,
+    verbose: bool = True
+) -> list[Path]:
     """
     Download GEDI data using NASA Harmony API based on a time range and spatial subset.
     Please note that if `subset_vector` is provided, the download will be subset to the
@@ -180,7 +180,7 @@ def _authenticate_earthdata() -> Client:
         try:
             earthaccess.Auth.get_session = _trust_env(earthaccess.Auth.get_session)
             auth = earthaccess.login(strategy='all', persist=True)
-        except Exception:
+        except Exception:  # noqa: BLE001
             raise e
     harmony_client = Client(auth=(auth.username, auth.password)) 
     return harmony_client
@@ -196,8 +196,10 @@ def _trust_env(f: Callable[..., requests.Session]) -> Callable[..., requests.Ses
     return wrapper
 
 
-def _get_bbox(subset_vector: Optional[str | Path], 
-              subset_bbox: Optional[tuple[float, float, float, float]]) -> BBox:
+def _get_bbox(
+    subset_vector: str | Path | None, 
+    subset_bbox: tuple[float, float, float, float] | None
+) -> BBox:
     """
     Extract bounding box from vector file or bbox coordinates.
     
@@ -235,10 +237,12 @@ def _get_bbox(subset_vector: Optional[str | Path],
     return BBox(*subset_bbox)
 
 
-def _failed_status(download_dir : Path, 
-                   job_id: str, 
-                   job_id_file: Path,
-                   result_json: dict) -> None:
+def _failed_status(
+    download_dir : Path, 
+    job_id: str, 
+    job_id_file: Path,
+    result_json: dict
+) -> None:
         """Handle failed Harmony job status by saving error details and raising RuntimeError."""
         error_json_path = download_dir.joinpath(f'{job_id}_error.json')
         with open(error_json_path, 'w') as f:
