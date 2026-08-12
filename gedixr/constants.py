@@ -1,7 +1,13 @@
 ALLOWED_PRODUCTS = ['L2A', 'L2B']
 PRODUCT_MAPPING = {
-    'L2A': 'GEDI02_A',
-    'L2B': 'GEDI02_B'
+    'L2A': {
+        'V002': 'C2142771958-LPCLOUD',
+        'V003': 'C3974616071-LPCLOUD'
+        },
+    'L2B': {
+        'V002': 'C2142776747-LPCLOUD',
+        'V003': 'C3974616135-LPCLOUD'
+        }
 }
 
 PATTERN_L2A = '*GEDI02_A_*.h5'

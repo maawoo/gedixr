@@ -84,25 +84,21 @@ download the requested data using `gedixr`:
 product (L2A or L2B) will be created automatically.
 - `--product` / `-p`: GEDI product type ('L2A' or 'L2B')
 
-### Spatial Subsetting (one required unless resuming with `--job-id`)
+One of the following is required unless you are resuming a job with `--job-id`:
 
 - `--subset-vector` / `-v`: Path to vector file for spatial subsetting
 - `--bbox`: Bounding box as 'min_lon,min_lat,max_lon,max_lat'
 
-### Temporal Filtering (optional)
+### Optional Parameters
 
+- `--version`: GEDI product version ('V002' or 'V003'; defaults to 'V003')
 - `--time-start` / `-s`: Start date in YYYY-MM-DD format
 - `--time-end` / `-e`: End date in YYYY-MM-DD format
 
 !!! note
-    Both `--time-start` and `--time-end` must be provided together.
-
-### Resume Options
+    Both `--time-start` and `--time-end` must be provided together if you want to apply temporal filtering.
 
 - `--job-id`: Harmony job ID to resume a previous download
-
-### Other Options
-
 - `--quiet` / `-q`: Suppress progress messages (CLI only)
 
 ## Output
