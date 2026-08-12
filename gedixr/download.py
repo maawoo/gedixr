@@ -9,7 +9,7 @@ from typing import Any
 import earthaccess
 import geopandas as gpd
 import requests
-from harmony import BBox, CapabilitiesRequest, Client, Collection, Request
+from harmony import BBox, Client, Collection, Request
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
 import gedixr.constants as con
@@ -18,6 +18,7 @@ import gedixr.constants as con
 def download_data(
     directory: str | Path,
     gedi_product: str,
+    product_version: str = 'V003',
     time_range: tuple[str, str] | None = None,
     subset_vector: str | Path | None = None,
     subset_bbox: tuple[float, float, float, float] | None = None,
@@ -37,6 +38,8 @@ def download_data(
         GEDI product will be created within this directory and files will be saved there.
     gedi_product : str
         GEDI product name: 'L2A' or 'L2B'
+    product_version : str
+        GEDI product version: 'V002' or 'V003'. Default is 'V003'.
     time_range : tuple of str, optional
         Time range as (start_date, end_date) in format 'YYYY-MM-DD'
     subset_vector : str or Path, optional
@@ -73,11 +76,15 @@ def download_data(
     ...     job_id=job_id
     ... )
     """
-    short_name = con.PRODUCT_MAPPING.get(gedi_product.upper())
-    if short_name is None:
+    product_dict = con.PRODUCT_MAPPING.get(gedi_product.upper(), {})
+    if product_dict is None or len(product_dict) == 0:
         raise ValueError(f"Parameter 'gedi_product': expected to be one of "
                         f"{list(con.PRODUCT_MAPPING.keys())}; got '{gedi_product}' instead")
-
+    concept_id = product_dict.get(product_version.upper(), None)
+    if concept_id is None:
+        raise ValueError(f"Parameter 'product_version': expected to be one of "
+                        f"{list(product_dict.keys())}; got '{product_version}' instead")
+    
     directory = Path(directory)
     if not directory.exists():
         raise ValueError(f"Directory does not exist: {directory}")
@@ -101,8 +108,7 @@ def download_data(
         
         bbox = _get_bbox(subset_vector, subset_bbox)
 
-        capabilities = harmony_client.submit(CapabilitiesRequest(short_name=short_name))
-        collection = Collection(id=capabilities['conceptId'])
+        collection = Collection(id=concept_id)
         request = Request(
             collection=collection,
             spatial=bbox,

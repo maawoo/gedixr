@@ -165,11 +165,17 @@ def download(
     ],
     product: Annotated[
         str,
-        typer.Option(
-            "--product", "-p",
+        typer.Argument(
             help="GEDI product type: 'L2A' or 'L2B'",
         ),
     ],
+    version: Annotated[
+        str,
+        typer.Option(
+            "--version", "-v",
+            help="GEDI product version: 'V002' or 'V003'",
+        ),
+    ] = "V003",
     time_start: Annotated[
         str | None,
         typer.Option(
@@ -260,6 +266,7 @@ def download(
         _file_paths, returned_job_id = download_data(
             directory=directory,
             gedi_product=product,
+            product_version=version,
             time_range=time_range,
             subset_vector=subset_vector,
             subset_bbox=subset_bbox,
