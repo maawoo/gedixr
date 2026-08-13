@@ -99,9 +99,10 @@ def extract_data(
     directory = anc.to_pathlib(x=directory)
     subset_vector = anc.to_pathlib(x=subset_vector) if \
         (subset_vector is not None) else None
-    log_handler, now = anc.set_logging(directory, gedi_product)
+    log_handler, now = anc.set_logging(directory, gedi_product, product_version)
     anc.initialize_log(handler=log_handler,
                        gedi_product=gedi_product,
+                       product_version=product_version,
                        variables=variables,
                        beams=beams,
                        filter_month=filter_month,
@@ -138,7 +139,7 @@ def extract_data(
         filepaths = [p for p in filepaths if _check_product_version(p, product_version.upper())]
 
         if len(filepaths) == 0:
-            raise RuntimeError(f"No GEDI {gedi_product} files were found in "
+            raise RuntimeError(f"No GEDI {gedi_product}-{product_version} files were found in "
                                f"{directory}.")
         
         gdf_list_no_spatial_subset = []

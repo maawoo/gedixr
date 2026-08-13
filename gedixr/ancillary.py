@@ -23,7 +23,8 @@ error_tracker = ErrorTracker()
 
 def set_logging(
     directory: Path,
-    gedi_product: str
+    gedi_product: str,
+    product_version: str
 ) -> tuple[logging.Logger, str]:
     """
     Set logging for the current process.
@@ -35,6 +36,8 @@ def set_logging(
         '<directory>/log'.
     gedi_product: str
         One of ['L2A', 'L2B']. Used to name the log file.
+    product_version: str
+        One of ['V002', 'V003']. Used to name the log file.
     
     Returns
     -------
@@ -46,7 +49,7 @@ def set_logging(
     log_local = logging.getLogger(__name__)
     log_local.setLevel(logging.DEBUG)
     
-    log_file = directory.joinpath('log', f"{now}_{gedi_product}.log")
+    log_file = directory.joinpath('log', f"{now}_{gedi_product}-{product_version}.log")
     log_file.parent.mkdir(exist_ok=True)
     
     fh = logging.FileHandler(filename=log_file, mode='a')
@@ -103,6 +106,7 @@ def log(
 def initialize_log(
     handler: logging.Logger,
     gedi_product: str,
+    product_version: str,
     variables: list[str],
     beams: list[str],
     filter_month: int | None,
@@ -117,7 +121,9 @@ def initialize_log(
     handler: logging.Logger
         Log handler initiated with the function `set_logging`.
     gedi_product: str
-        One of ['L2A', 'L2B']. Used to name the log file.
+        One of ['L2A', 'L2B'].
+    product_version: str
+        One of ['V002', 'V003'].
     variables: list of str
         List of variables to extract from the GEDI L2A/L2B files.
     beams: list of str
@@ -137,7 +143,7 @@ def initialize_log(
             f"pandas {version('pandas')}, "
             f"geopandas {version('geopandas')}")
     log(handler=handler, mode='info',
-        msg=f"Starting GEDI {gedi_product} data extraction using parameters: "
+        msg=f"Starting GEDI {gedi_product}-{product_version} data extraction using parameters: "
             f"variables={variables}, beams={beams}, "
             f"filter_month={filter_month}, "
             f"subset_vector={subset_vector}, "
