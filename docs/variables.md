@@ -39,12 +39,11 @@ the `variables` parameter (see "Custom Variables" section below).
 ## Further Information
 
 - [V003 User Guide](https://lpdaac.usgs.gov/documents/2442/GEDI02_User_Guide_V3.pdf)
-- [L2A-V003 Variables](https://www.earthdata.nasa.gov/data/catalog/lpcloud-gedi02-a-003#variables)
-- [L2B-V003 Variables](https://www.earthdata.nasa.gov/data/catalog/lpcloud-gedi02-b-003#variables)
-
+    - [L2A-V003 Variables](https://www.earthdata.nasa.gov/data/catalog/lpcloud-gedi02-a-003#variables)
+    - [L2B-V003 Variables](https://www.earthdata.nasa.gov/data/catalog/lpcloud-gedi02-b-003#variables)
 - [V002 User Guide](https://lpdaac.usgs.gov/documents/998/GEDI02_UserGuide_V21.pdf)
-- [L2A-V002 Variables](https://lpdaac.usgs.gov/products/gedi02_av002#variables)
-- [L2B-V002 Variables](https://lpdaac.usgs.gov/products/gedi02_bv002#variables)
+    - [L2A-V002 Variables](https://lpdaac.usgs.gov/products/gedi02_av002#variables)
+    - [L2B-V002 Variables](https://lpdaac.usgs.gov/products/gedi02_bv002#variables)
 
 ## Custom Variables
 
