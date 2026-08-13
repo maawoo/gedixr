@@ -32,6 +32,13 @@ def extract(
             help="GEDI product type: 'L2A' or 'L2B'",
         ),
     ] = "L2B",
+    version: Annotated[
+        str,
+        typer.Option(
+            "--version", "-v",
+            help="GEDI product version: 'V002' or 'V003'",
+        ),
+    ] = "V003",
     variables: Annotated[
         str | None,
         typer.Option(
@@ -129,6 +136,7 @@ def extract(
         result, out_path = extract_data(
             directory=directory,
             gedi_product=product,
+            product_version=version,
             variables=variables_list,
             beams=beams_list,
             filter_month=filter_month,
