@@ -12,6 +12,7 @@ no time!
 - **Quality filtering** built-in with the option to skip and apply custom filters later
 - **Spatial subsetting** using common vector file formats (GeoJSON, GeoPackage, etc.)
 - **GeoParquet output** for efficient storage and processing
+- **Supports version V002 and V003 data** from v0.7.0 onward
 
 ## Quick Example
 

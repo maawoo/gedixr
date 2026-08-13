@@ -19,6 +19,7 @@ import gedixr.constants as con
 def extract_data(
     directory: str | Path,
     gedi_product: str,
+    product_version: str = 'V003',
     variables: list[tuple[str, str]] | None = None,
     beams: str | list[str] | None = None,
     filter_month: tuple[int, int] | None = None,
@@ -47,6 +48,8 @@ def extract_data(
         Root directory to recursively search for GEDI L2A/L2B files.
     gedi_product: str
         GEDI product type. Either 'L2A' or 'L2B'. Default is 'L2B'.
+    product_version: str
+        GEDI product version. Either 'V002' or 'V003'. Default is 'V003'.
     variables: list of tuple of str, optional
         List of tuples containing the desired column name in the returned
         GeoDataFrame and the GEDI layer name to be extracted. Defaults to those
@@ -89,13 +92,17 @@ def extract_data(
     if gedi_product not in con.ALLOWED_PRODUCTS:
         raise RuntimeError(f"Parameter 'gedi_product': expected to be one of "
                            f"{con.ALLOWED_PRODUCTS}; got {gedi_product} instead")
-    
+    if product_version not in con.PRODUCT_MAPPING[gedi_product]:
+        raise RuntimeError(f"Parameter 'product_version': expected to be one of "
+                           f"{list(con.PRODUCT_MAPPING[gedi_product].keys())}; got {product_version} instead")
+
     directory = anc.to_pathlib(x=directory)
     subset_vector = anc.to_pathlib(x=subset_vector) if \
         (subset_vector is not None) else None
-    log_handler, now = anc.set_logging(directory, gedi_product)
+    log_handler, now = anc.set_logging(directory, gedi_product, product_version)
     anc.initialize_log(handler=log_handler,
                        gedi_product=gedi_product,
+                       product_version=product_version,
                        variables=variables,
                        beams=beams,
                        filter_month=filter_month,
@@ -122,15 +129,17 @@ def extract_data(
         filter_month = (1, 12)
     if subset_vector is not None:
         out_dict = anc.prepare_vec(vec=subset_vector)
-    layers = con.DEFAULT_BASE[gedi_product] + variables
     
+    # Get the base variables for the specified product and version, applying overrides for V003
+    layers = _get_base_variables(gedi_product, product_version) + variables
+
     try:
         # (1) Search for GEDI files
-        filepaths = [p for p in directory.rglob('*') if p.is_file() and
-                     p.match(pattern)]
-        
+        filepaths = [p for p in directory.rglob('*') if p.is_file() and p.match(pattern)]
+        filepaths = [p for p in filepaths if _check_product_version(p, product_version.upper())]
+
         if len(filepaths) == 0:
-            raise RuntimeError(f"No GEDI {gedi_product} files were found in "
+            raise RuntimeError(f"No GEDI {gedi_product}-{product_version} files were found in "
                                f"{directory}.")
         
         gdf_list_no_spatial_subset = []
@@ -153,6 +162,7 @@ def extract_data(
                 df = pd.DataFrame(_from_file(gedi=gedi,
                                              gedi_fp=fp,
                                              gedi_product=gedi_product,
+                                             product_version=product_version,
                                              beams=beams,
                                              layers=layers,
                                              acq_time=date,
@@ -202,7 +212,7 @@ def extract_data(
             for k, v in out_dict.items():
                 v['path'] = None
                 if v['gdf'] is not None:
-                    out_path = out_dir.joinpath(f'{now}_{gedi_product}_{flt}_{k}.parquet')
+                    out_path = out_dir.joinpath(f'{now}_{gedi_product}-{product_version}_{flt}_{k}.parquet')
                     v['gdf'].to_parquet(out_path)
                     v['path'] = out_path
             return out_dict, None
@@ -211,7 +221,7 @@ def extract_data(
             # make sure that gdf's in list are not all empty 
             if gdf_list_no_spatial_subset:
                 out = pd.concat(gdf_list_no_spatial_subset)
-                out_path = out_dir.joinpath(f'{now}_{gedi_product}_{flt}.parquet')
+                out_path = out_dir.joinpath(f'{now}_{gedi_product}-{product_version}_{flt}.parquet')
                 out.to_parquet(out_path)
             else:
                 anc.log(handler=log_handler, mode='info',
@@ -230,6 +240,41 @@ def extract_data(
                   f"process. Please check the log file!")
 
 
+def _check_product_version(path: Path, version: str) -> bool:
+    """ Checks if a given GEDI file path corresponds to the specified product version."""
+    name = path.name
+    regex = re.compile(rf'[_\.]?{re.escape(version)}.*\.h5$', re.IGNORECASE)
+    return regex.search(name) is not None
+
+
+def _get_base_variables(
+    product: str,
+    version: str,
+    base_dict: dict[str, list[tuple[str, str]]] = con.DEFAULT_BASE,
+    override_dict: dict[str, dict[str, str]] = con.DEFAULT_BASE_V003_CHANGES,
+) -> list[tuple[str, str]]:
+    """ Returns the base variables for a given product and version, applying overrides for V003 if necessary."""
+    base_vars = base_dict[product]
+
+    if version == 'V002':
+        return base_vars
+    if version == 'V003':
+        overrides = override_dict.get(product, {})
+        if not overrides:
+            return base_vars
+
+        # Build a mapping from output_name -> (output_name, hdf_path)
+        var_map = {name: (name, path) for name, path in base_vars}
+
+        # Apply overrides: replace hdf_path for matching output_name
+        for name, new_path in overrides.items():
+            if name in var_map:
+                var_map[name] = (name, new_path)
+        
+        return list(var_map.values())
+    raise ValueError(f"Unsupported version: {version}")
+
+
 def _date_from_gedi_file(gedi_path: Path) -> datetime:
     """Extract date string from GEDI filename and convert to datetime object."""
     date_str = re.search('[AB]_[0-9]{13}', gedi_path.name).group()
@@ -241,6 +286,7 @@ def _from_file(
     gedi: h5py.File,
     gedi_fp: Path,
     gedi_product: str,
+    product_version: str,
     beams: list[str],
     layers: list[tuple[str, str]],
     acq_time: datetime,
@@ -257,6 +303,8 @@ def _from_file(
         Path to the current GEDI HDF5 file.
     gedi_product: str
         GEDI product type. Either 'L2A' or 'L2B'.
+    product_version: str
+        GEDI product version. Either 'V002' or 'V003'.
     beams: list of str
         List of GEDI beams to extract values from.
     layers: list of tuple of str
@@ -298,6 +346,10 @@ def _from_file(
                 if v.startswith("rh") and gedi_product == "L2A":
                     idx = int(v[2:])
                     vals = [round(h_bin[idx] * 100) for h_bin in gedi[f"{beam}/rh"][()]]
+                elif v.startswith(("rh", "rch")) and gedi_product == "L2B" and product_version == "V003":
+                    m = re.search(r'(\d+)$', v)
+                    idx = int(m.group(1)) if m else None
+                    vals = [h_bin[idx] for h_bin in gedi[f"{beam}/rch"][()]]
                 elif v == "shot_number":
                     vals = [f"{_id:0>18}" for _id in shot_raw]
                 else:

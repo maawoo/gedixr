@@ -35,10 +35,10 @@ INFO | GEDI02_B_2024130044637_O30619_04_T06857_02_004_01_V002.h5 |
 ### Output File Naming
 
 The output filename indicates whether default quality filtering was applied by using a 
-suffix after the product type:
+suffix after the product name and version:
 
-- `YYYYMMDDHHMMSS_L2B_1.parquet` - Quality filtering was **enabled**
-- `YYYYMMDDHHMMSS_L2B_0.parquet` - Quality filtering was **disabled**
+- `YYYYMMDDHHMMSS_L2B-V003_1.parquet` - Quality filtering was **enabled**
+- `YYYYMMDDHHMMSS_L2B-V003_0.parquet` - Quality filtering was **disabled**
 
 ## Disabling Quality Filtering
 
