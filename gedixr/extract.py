@@ -212,7 +212,7 @@ def extract_data(
             for k, v in out_dict.items():
                 v['path'] = None
                 if v['gdf'] is not None:
-                    out_path = out_dir.joinpath(f'{now}_{gedi_product}_{flt}_{k}.parquet')
+                    out_path = out_dir.joinpath(f'{now}_{gedi_product}-{product_version}_{flt}_{k}.parquet')
                     v['gdf'].to_parquet(out_path)
                     v['path'] = out_path
             return out_dict, None
@@ -221,7 +221,7 @@ def extract_data(
             # make sure that gdf's in list are not all empty 
             if gdf_list_no_spatial_subset:
                 out = pd.concat(gdf_list_no_spatial_subset)
-                out_path = out_dir.joinpath(f'{now}_{gedi_product}_{flt}.parquet')
+                out_path = out_dir.joinpath(f'{now}_{gedi_product}-{product_version}_{flt}.parquet')
                 out.to_parquet(out_path)
             else:
                 anc.log(handler=log_handler, mode='info',
