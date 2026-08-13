@@ -18,7 +18,7 @@ the `variables` parameter (see "Custom Variables" section below).
 
 | Variable | Description | GEDI Layer Name |
 |----------|-------------|-----------------|
-| `rh100` | Height above ground of received waveform signal start | `rh100` |
+| `rh100` | Height above ground of received waveform signal start | `rch[101]` (V003) / `rh100` (V002) |
 | `tcc` | Total canopy cover | `cover` |
 | `fhd` | Foliage Height Diversity | `fhd_normal` |
 | `pai` | Total Plant Area Index | `pai` |
@@ -38,10 +38,13 @@ the `variables` parameter (see "Custom Variables" section below).
 
 ## Further Information
 
-For comprehensive overviews of all available layers in each product:
+- [V003 User Guide](https://lpdaac.usgs.gov/documents/2442/GEDI02_User_Guide_V3.pdf)
+- [L2A-V003 Variables](https://www.earthdata.nasa.gov/data/catalog/lpcloud-gedi02-a-003#variables)
+- [L2B-V003 Variables](https://www.earthdata.nasa.gov/data/catalog/lpcloud-gedi02-b-003#variables)
 
-- [GEDI L2A Product Information](https://lpdaac.usgs.gov/products/gedi02_av002#variables)
-- [GEDI L2B Product Information](https://lpdaac.usgs.gov/products/gedi02_bv002#variables)
+- [V002 User Guide](https://lpdaac.usgs.gov/documents/998/GEDI02_UserGuide_V21.pdf)
+- [L2A-V002 Variables](https://lpdaac.usgs.gov/products/gedi02_av002#variables)
+- [L2B-V002 Variables](https://lpdaac.usgs.gov/products/gedi02_bv002#variables)
 
 ## Custom Variables
 

@@ -61,11 +61,11 @@ into a single GeoDataFrame while loading.
 ```python
 from gedixr.xr import load_to_gdf
 
-gdf_merged = load_to_gdf(l2a="extracted/20260106_L2A_1.parquet",
-                         l2b="extracted/20260106_L2B_1.parquet")
+gdf_merged = load_to_gdf(l2a="extracted/20260106_L2A-V003_1.parquet",
+                         l2b="extracted/20260106_L2B-V003_1.parquet")
 
 # or load single product:
-gdf_l2b = load_to_gdf(l2b="extracted/20260106_L2B_1.parquet")
+gdf_l2b = load_to_gdf(l2b="extracted/20260106_L2B-V003_1.parquet")
 ```
 
 You can also merge L2A and L2B data directly after extraction using the `merge_gdf` 
