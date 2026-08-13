@@ -8,8 +8,8 @@ authors:
     given-names: Marco
     affiliation: University of Jena
     orcid: 'https://orcid.org/0000-0002-5231-7208'
-version: 0.6.1
-date-released: '2026-04-29'
+version: 0.7.0
+date-released: '2026-08-13'
 commit: 1e082516d5427a3cb3f80b6fac8450b0e5d69af6
 license: MIT
 url: 'https://maawoo.github.io/gedixr'
