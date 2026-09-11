@@ -9,6 +9,4 @@ dependencies:
   - geocube
   - pyarrow
   - typer
-  - harmony-py
-  - earthaccess
   

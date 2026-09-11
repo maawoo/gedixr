@@ -3,7 +3,6 @@ from typing import Annotated
 
 import typer
 
-from gedixr.download import download_data
 from gedixr.extract import extract_data
 
 app = typer.Typer(
@@ -271,6 +270,8 @@ def download(
         typer.echo(f"Downloading GEDI {product} data to: {directory}")
     
     try:
+        from gedixr.download import download_data
+
         _file_paths, returned_job_id = download_data(
             directory=directory,
             gedi_product=product,

@@ -4,6 +4,15 @@ The `gedixr` package provides functionality to download GEDI data directly using
 Harmony API. This feature allows you to download GEDI L2A or L2B data for your area and 
 time period of interest without manually navigating NASA Earthdata Search.
 
+## Installation
+
+Download support is an optional package feature. Install the package with download support directly 
+from GitHub:
+
+```bash
+pip install "gedixr[download] @ git+https://github.com/maawoo/gedixr.git"
+```
+
 ## Prerequisites and Authentication
 
 Before downloading GEDI data, you need to create a NASA Earthdata account at 
@@ -23,10 +32,9 @@ for details.
 === "CLI"
 
     ```bash
-    gedixr download data/gedi \
-        --product L2A \
-        --time-start 2019-01-01 \
-        --time-end 2020-12-31 \
+    gedixr download data/gedi L2A \ 
+        --time-start 2019-01-01 \ 
+        --time-end 2020-12-31 \ 
         --subset-vector study_area.geojson
     ```
 
@@ -62,8 +70,7 @@ download the requested data using `gedixr`:
 === "CLI"
 
     ```bash
-    gedixr download data/gedi \
-        --product L2B \
+    gedixr download data/gedi L2B \ 
         --job-id your_order_id_here
     ```
 === "Python"
@@ -82,7 +89,7 @@ download the requested data using `gedixr`:
 
 - `directory`: Directory where files will be saved. A subdirectory named after the 
 product (L2A or L2B) will be created automatically.
-- `--product` / `-p`: GEDI product type ('L2A' or 'L2B')
+- `product`: GEDI product type ('L2A' or 'L2B')
 
 One of the following is required unless you are resuming a job with `--job-id`:
 
@@ -176,8 +183,7 @@ using the job ID:
     ```bash
     # The job ID will be shown when you start the download
     # and saved to a .harmony_job_id file in the download directory
-    gedixr download data/gedi \
-        --product L2B \
+    gedixr download data/gedi L2B \ 
         --job-id abc123def456
     ```
 

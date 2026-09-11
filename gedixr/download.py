@@ -6,11 +6,23 @@ from functools import wraps
 from pathlib import Path
 from typing import Any
 
-import earthaccess
 import geopandas as gpd
-import requests
-from harmony import BBox, Client, Collection, Request
-from requests.exceptions import ConnectionError as RequestsConnectionError
+
+
+def _require_download_dependencies():
+    """Load optional dependencies used only by the download functionality."""
+    try:
+        # pyrefly: ignore [missing-import]
+        import earthaccess
+        
+        # pyrefly: ignore [missing-import]
+        from harmony import BBox, Client, Collection, Request
+    except ImportError as exc:
+        raise ImportError(
+            "Download functionality requires the optional dependencies. "
+            "Install them with `pip install 'gedixr[download]'`."
+        ) from exc
+    return earthaccess, BBox, Client, Collection, Request
 
 import gedixr.constants as con
 
@@ -76,6 +88,8 @@ def download_data(
     ...     job_id=job_id
     ... )
     """
+    _, _, _, Collection, Request = _require_download_dependencies()
+
     product_dict = con.PRODUCT_MAPPING.get(gedi_product.upper(), {})
     if product_dict is None or len(product_dict) == 0:
         raise ValueError(f"Parameter 'gedi_product': expected to be one of "
@@ -177,25 +191,27 @@ def download_data(
         raise
 
 
-def _authenticate_earthdata() -> Client:
-    """ Authenticate with Earthdata and return a Harmony client. """
+def _authenticate_earthdata() -> Any:
+    """Authenticate with Earthdata and return a Harmony client."""
+    earthaccess, _, Client, _, _ = _require_download_dependencies()
+    from requests.exceptions import ConnectionError as RequestsConnectionError
+
     try:
         auth = earthaccess.login(strategy='all', persist=True)
-    except RequestsConnectionError as e: 
+    except RequestsConnectionError as e:
         print("Initial Earthdata authentication failed, retrying with trusted environment...")
         try:
             earthaccess.Auth.get_session = _trust_env(earthaccess.Auth.get_session)
             auth = earthaccess.login(strategy='all', persist=True)
         except Exception:  # noqa: BLE001
             raise e
-    harmony_client = Client(auth=(auth.username, auth.password)) 
-    return harmony_client
+    return Client(auth=(auth.username, auth.password))
 
 
-def _trust_env(f: Callable[..., requests.Session]) -> Callable[..., requests.Session]:
+def _trust_env(f: Callable[..., Any]) -> Callable[..., Any]:
     """ https://github.com/nsidc/earthaccess/issues/501#issuecomment-3458773255 """
     @wraps(f)
-    def wrapper(*args: Any, **kwargs: Any) -> requests.Session:
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         session = f(*args, **kwargs)
         session.trust_env = True
         return session
@@ -205,27 +221,10 @@ def _trust_env(f: Callable[..., requests.Session]) -> Callable[..., requests.Ses
 def _get_bbox(
     subset_vector: str | Path | None, 
     subset_bbox: tuple[float, float, float, float] | None
-) -> BBox:
-    """
-    Extract bounding box from vector file or bbox coordinates.
-    
-    Parameters
-    ----------
-    subset_vector : str or Path, optional
-        Path to vector file (shapefile, GeoJSON, etc.)
-    subset_bbox : tuple of float, optional
-        Bounding box as (min_lon, min_lat, max_lon, max_lat)
-    
-    Returns
-    -------
-    BBox
-        Harmony BBox object
-    
-    Raises
-    ------
-    ValueError
-        If neither parameter is provided
-    """
+) -> Any:
+    """ Extract bounding box from vector file or bbox coordinates. """
+    _, BBox, _, _, _ = _require_download_dependencies()
+
     if subset_vector is None and subset_bbox is None:
         raise ValueError("Either subset_vector or subset_bbox must be provided")
     

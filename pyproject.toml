@@ -24,6 +24,10 @@ dependencies = [
     "geocube",
     "pyarrow",
     "typer",
+]
+
+[project.optional-dependencies]
+download = [
     "harmony-py",
     "earthaccess",
 ]

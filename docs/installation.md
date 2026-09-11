@@ -22,6 +22,12 @@ Install the package into the activated environment:
 pip install git+https://github.com/maawoo/gedixr.git
 ```
 
+Download support is optional. To install the package and its NASA Earthdata and Harmony dependencies from GitHub, use:
+
+```bash
+pip install "gedixr[download] @ git+https://github.com/maawoo/gedixr.git"
+```
+
 ## Specific Version
 
 See the [Tags](https://github.com/maawoo/gedixr/tags) section of the repository for available versions:
@@ -29,5 +35,5 @@ See the [Tags](https://github.com/maawoo/gedixr/tags) section of the repository 
 ```bash
 conda env create --file https://raw.githubusercontent.com/maawoo/gedixr/v0.7.0/environment.yml
 conda activate gedixr_env
-pip install git+https://github.com/maawoo/gedixr.git@v0.7.0
+pip install "gedixr[download] @ git+https://github.com/maawoo/gedixr.git@v0.7.0"
 ```
