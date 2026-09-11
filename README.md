@@ -23,6 +23,12 @@ conda activate gedixr_env
 pip install git+https://github.com/maawoo/gedixr.git@v0.7.0
 ```
 
+Download support is optional. To install it from GitHub, use:
+
+```bash
+pip install "gedixr[download] @ git+https://github.com/maawoo/gedixr.git@v0.7.0"
+```
+
 ### CLI Usage
 
 ```bash

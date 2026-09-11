@@ -9,8 +9,6 @@ dependencies:
   - geocube
   - pyarrow
   - typer
-  - harmony-py
-  - earthaccess
   - mkdocs
   - mkdocs-material
   - mkdocstrings-python
